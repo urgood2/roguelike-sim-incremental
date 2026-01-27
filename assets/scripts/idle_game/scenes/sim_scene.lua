@@ -8,6 +8,7 @@ local spawner = require("idle_game.spawner")
 local resource_panel = require("idle_game.ui.resource_panel")
 local input_module = require("idle_game.input")
 local resources = require("idle_game.resources")
+local selection = require("idle_game.selection")
 
 -- Store generated terrain
 local terrainGrid = nil
@@ -44,6 +45,8 @@ function sim_scene.update(dt)
             terrain._currentGrid:set(tileX, tileY, terrain.GRASS)
         end
     end
+    
+    selection.update()
 end
 
 function sim_scene.draw()

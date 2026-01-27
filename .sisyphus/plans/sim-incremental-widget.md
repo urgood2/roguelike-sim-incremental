@@ -1484,7 +1484,7 @@ Phase 7 (Polish) ← Phase 6 (Upgrades) ← Phase 5 (Debug) ← Phase 4 (Resourc
 
 ### Phase 5: Debug UI
 
-- [ ] 5.1. Click-to-select entity
+- [x] 5.1. Click-to-select entity
 
   **What to do**:
   - Implement entity selection on click
