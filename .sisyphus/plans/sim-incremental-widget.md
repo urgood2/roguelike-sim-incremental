@@ -125,14 +125,14 @@ local tileY = math.floor(mouse.y / TILE_SIZE)
 ---
 
 ### Definition of Done
-- [ ] Widget runs borderless, draggable, resizable
-- [ ] Forest generates deterministically from seed
-- [ ] Creatures wander and forage autonomously
-- [ ] Resources accumulate from clicks and creature actions
-- [ ] Upgrades purchasable, effects visible
-- [ ] GOAP debug panel shows real-time state
-- [ ] Visual polish applied (palette + pixelation)
-- [ ] `just build-debug` passes with no errors
+- [x] Widget runs borderless, draggable, resizable
+- [x] Forest generates deterministically from seed
+- [x] Creatures wander and forage autonomously
+- [x] Resources accumulate from clicks and creature actions
+- [x] Upgrades purchasable, effects visible
+- [x] GOAP debug panel shows real-time state
+- [BLOCKED] Visual polish applied (palette + pixelation) - PNG creation blocked
+- [x] `just build-debug` passes with no errors
 
 ### Must Have
 - Single fixed screen (no scrolling/panning)
@@ -2080,14 +2080,14 @@ lua assets/scripts/tests/test_idle_upgrades.lua   # Expected: All tests passed
 ```
 
 ### Final Checklist
-- [ ] Borderless widget window working
-- [ ] Forest terrain generated from seed
-- [ ] 5+ creatures wandering/foraging
-- [ ] 4 resources accumulating
-- [ ] Click-to-collect working
-- [ ] 10+ upgrades purchasable
-- [ ] GOAP debug panel functional
-- [ ] Earthy palette applied
-- [ ] Pixelation effect applied
-- [ ] Stable 60fps with 20 creatures
-- [ ] All "Must NOT Have" items absent
+- [x] Borderless widget window working
+- [x] Forest terrain generated from seed
+- [x] 5+ creatures wandering/foraging
+- [x] 4 resources accumulating
+- [x] Click-to-collect working
+- [x] 10+ upgrades purchasable
+- [x] GOAP debug panel functional
+- [BLOCKED] Earthy palette applied (PNG creation not possible)
+- [BLOCKED] Pixelation effect applied (depends on palette PNG)
+- [ ] Stable 60fps with 20 creatures (requires manual testing)
+- [x] All "Must NOT Have" items absent
