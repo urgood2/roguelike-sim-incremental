@@ -31,6 +31,7 @@
 #include <cmath>
 #include <limits>
 #include <filesystem>
+#include <chrono>
 
 #include "../../util/common_headers.hpp"
 #include "util/error_handling.hpp"
@@ -2216,7 +2217,13 @@ namespace ai_system
         auto &goapStruct = globals::getRegistry().get<GOAPComponent>(entity);
 
         goapStruct.planSize = globals::MAX_ACTIONS;
+        
+        // SPIKE: Measure GOAP planning performance
+        auto astar_start = std::chrono::high_resolution_clock::now();
         goapStruct.planCost = astar_plan(&goapStruct.ap, goapStruct.current_state, goapStruct.goal, goapStruct.plan, goapStruct.states, &goapStruct.planSize);
+        auto astar_end = std::chrono::high_resolution_clock::now();
+        auto astar_duration_us = std::chrono::duration_cast<std::chrono::microseconds>(astar_end - astar_start);
+        SPDLOG_INFO("SPIKE: GOAP astar_plan took {:.3f}ms for entity {}", astar_duration_us.count() / 1000.0, static_cast<int>(entity));
         char desc[4096];
         goap_description(&goapStruct.ap, desc, sizeof(desc));
         // SPDLOG_DEBUG("replan() called for entity {}", static_cast<int>(entity));
