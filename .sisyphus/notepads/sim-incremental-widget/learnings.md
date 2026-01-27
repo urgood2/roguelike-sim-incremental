@@ -515,3 +515,27 @@ Time: 50.85ms
 - Scene draw() called every frame - efficient to iterate grid here
 - Color constructor: `Color(R, G, B, A)` expects 0-255 range
 
+
+## [2026-01-27 14:30] Task 3.1 - Forager Entity Type Complete
+
+**Completed Components**:
+1. Entity type: forager.lua with initial atoms (hungry, hasFood, nearTree, wander)
+2. Goal selector: forager.lua returning function (not table)
+3. Goals: FORAGE, CONSUME, IDLE_WANDER registered in idle_game/init.lua
+4. Worldstate updater: forager_sensing in worldstate_updaters.lua
+5. Terrain helpers: isNearTileType, get, setCurrentGrid in terrain.lua
+
+**GOAP Behavior Loop**:
+- hungry=true → nearTree detected → FORAGE goal → forage action → hasFood=true
+- hasFood=true → CONSUME goal → consume action → hungry=false  
+- hungry=false → 10s timer → hungry=true again
+- Fallback: IDLE_WANDER (low priority)
+
+**Technical Details**:
+- Coordinate conversion: worldX/TILE_SIZE → tileX (actualX for sensing)
+- Terrain radius search: 2 tiles around creature
+- Hunger regeneration: 10 second cooldown via blackboard
+- Grid singleton: terrain._currentGrid accessed by worldstate updater
+
+**Build**: ✓ Succeeds with all components integrated
+

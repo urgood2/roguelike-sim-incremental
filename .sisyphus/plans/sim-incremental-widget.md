@@ -970,7 +970,7 @@ Phase 7 (Polish) ← Phase 6 (Upgrades) ← Phase 5 (Debug) ← Phase 4 (Resourc
 
 ### Phase 3: Creature System
 
-- [ ] 3.1. Define creature entity types, goal selectors, and worldstate updaters
+- [x] 3.1. Define creature entity types, goal selectors, and worldstate updaters
 
   **What to do**:
   

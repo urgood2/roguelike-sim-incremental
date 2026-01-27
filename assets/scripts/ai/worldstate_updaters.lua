@@ -115,5 +115,29 @@ return {
         if ai.perception and ai.perception.tick then
             ai.perception.tick(entity, dt)
         end
+    end,
+    
+    forager_sensing = function(entity, dt)
+        local transform = registry:get(entity, Transform)
+        if not transform then return end
+        
+        local TILE_SIZE = 20
+        local tileX = math.floor(transform.actualX / TILE_SIZE)
+        local tileY = math.floor(transform.actualY / TILE_SIZE)
+        
+        local terrain = require("idle_game.terrain")
+        local nearTree = terrain.isNearTileType(tileX, tileY, terrain.TREE, 2)
+        ai.set_worldstate(entity, "nearTree", nearTree)
+        
+        local hungry = ai.get_worldstate(entity, "hungry")
+        if not hungry then
+            local hunger_timer = ai.bb.get(entity, "hunger_timer", 0) + dt
+            if hunger_timer > 10.0 then
+                ai.set_worldstate(entity, "hungry", true)
+                ai.bb.set(entity, "hunger_timer", 0)
+            else
+                ai.bb.set(entity, "hunger_timer", hunger_timer)
+            end
+        end
     end
 }

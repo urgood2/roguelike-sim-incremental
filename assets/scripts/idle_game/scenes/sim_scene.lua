@@ -13,6 +13,7 @@ function sim_scene.init()
     
     -- Generate terrain with fixed seed
     terrainGrid = terrain.generate(12345, config.GRID_WIDTH, config.GRID_HEIGHT)
+    terrain.setCurrentGrid(terrainGrid)
     print(string.format("Terrain generated: %dx%d", terrainGrid.width, terrainGrid.height))
 end
 

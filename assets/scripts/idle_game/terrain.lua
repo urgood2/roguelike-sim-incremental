@@ -72,4 +72,29 @@ function terrain.generate(seed, width, height)
     return grid
 end
 
+terrain._currentGrid = nil
+
+function terrain.setCurrentGrid(grid)
+    terrain._currentGrid = grid
+end
+
+function terrain.get(tileX, tileY)
+    if not terrain._currentGrid then return nil end
+    if tileX < 0 or tileX >= terrain._currentGrid.width then return nil end
+    if tileY < 0 or tileY >= terrain._currentGrid.height then return nil end
+    return terrain._currentGrid:get(tileX, tileY)
+end
+
+function terrain.isNearTileType(tileX, tileY, tileType, radius)
+    for dy = -radius, radius do
+        for dx = -radius, radius do
+            local tile = terrain.get(tileX + dx, tileY + dy)
+            if tile == tileType then
+                return true
+            end
+        end
+    end
+    return false
+end
+
 return terrain
