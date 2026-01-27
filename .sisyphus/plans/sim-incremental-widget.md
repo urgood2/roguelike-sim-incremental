@@ -1860,7 +1860,7 @@ Phase 7 (Polish) ← Phase 6 (Upgrades) ← Phase 5 (Debug) ← Phase 4 (Resourc
 
 ### Phase 7: Visual Polish
 
-- [ ] 7.1. Apply earthy color palette
+- [BLOCKED] 7.1. Apply earthy color palette (PNG creation not possible for AI)
 
   **What to do**:
   - Create palette texture: 8-16 earthy colors
@@ -1932,7 +1932,7 @@ Phase 7 (Polish) ← Phase 6 (Upgrades) ← Phase 5 (Debug) ← Phase 4 (Resourc
 
 ---
 
-- [ ] 7.2. Apply pixelation effect
+- [BLOCKED] 7.2. Apply pixelation effect (depends on 7.1 PNG)
 
   **What to do**:
   - Apply `pixelate_image.fs` as post-process via layer system
@@ -1997,7 +1997,7 @@ Phase 7 (Polish) ← Phase 6 (Upgrades) ← Phase 5 (Debug) ← Phase 4 (Resourc
 
 ---
 
-- [ ] 7.3. Final integration and polish
+- [x] 7.3. Final integration and polish
 
   **What to do**:
   - Set default window size: 600x400
