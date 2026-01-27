@@ -199,3 +199,87 @@ TEST 5: Performance Analysis
 
 OVERALL RESULT: ✓ ALL TESTS PASSED
 ```
+
+## [2026-01-27] Task 1.1 - Create idle_game Script Folder Structure
+
+### What We Did
+1. **Created directory structure**:
+   - `assets/scripts/idle_game/` - Main module directory
+   - `assets/scripts/idle_game/scenes/` - Scene files directory
+   - Both directories created successfully
+
+2. **Created idle_game/init.lua**:
+   - Entry point module with print("idle_game loaded")
+   - Returns empty idle_game table for future expansion
+   - Syntax validated via luac compilation
+
+3. **Created idle_game/config.lua**:
+   - Defines canonical grid dimensions: 30x20 tiles
+   - TILE_SIZE = 20 pixels (matches 600x400 virtual resolution)
+   - Sprite name constants for dungeon_437 tileset:
+     - SPRITE_GRASS = "d437_044_period"
+     - SPRITE_TREE = "d437_005_spade"
+     - SPRITE_ROCK = "d437_033_hash"
+   - All constants use documented naming from Phase 0.0 tileset
+
+4. **Integrated into main.lua**:
+   - Added `require("idle_game.init")` at line 5 in `assets/scripts/core/main.lua`
+   - Positioned after `require("ai.init")` and before other module loads
+   - Maintains script loading order consistency
+
+5. **Build & Verification**:
+   - Ran `just build-debug` - ✓ SUCCESS (no compilation errors)
+   - Both Lua files syntax-validated with luac
+   - No Lua errors on startup
+   - Structure ready for next tasks (terrain, creatures, etc.)
+
+### Key Findings
+
+**File Organization**:
+- idle_game module is isolated from existing game code (combat/, wand/, tutorials/)
+- scenes/ subdirectory ready for scene files (Task 1.2)
+- Module follows standard Lua require() pattern
+
+**Integration Point**:
+- Placed require() after ai.init but before util/ui modules
+- This ensures AI definitions are loaded before idle_game can reference them
+- No circular dependencies introduced
+
+**Configuration Design**:
+- Grid and sprite constants centralized in config.lua
+- Makes it easy to adjust tile size or grid dimensions globally
+- Sprite names match dungeon_437 naming convention from Phase 0.0
+- Virtual resolution (600x400) perfectly aligns with canonical grid size
+
+### Build Results
+```
+[100%] Built target raylib-cpp-cmake-template
+Compile time: ~15 seconds for full debug build
+No Lua errors on startup
+Directory structure verified:
+  assets/scripts/idle_game/init.lua (66 bytes)
+  assets/scripts/idle_game/config.lua (532 bytes)
+  assets/scripts/idle_game/scenes/ (empty directory)
+```
+
+### Success Criteria Met
+- ✓ Directory structure created (idle_game/, idle_game/scenes/)
+- ✓ init.lua created with print statement
+- ✓ config.lua created with grid/sprite constants
+- ✓ require("idle_game.init") added to main.lua
+- ✓ Build succeeds without errors
+- ✓ No Lua runtime errors on startup
+- ✓ Syntax validated via luac
+
+### Next Steps (Task Dependencies)
+- Task 1.2: Create minimal game scene (sim_scene.lua with init/update/draw)
+- Task 1.3.0: Neutralize auto-loaded files with combat/wand dependencies
+- Task 1.3: Remove unused game code (combat/, wand/ directories)
+
+### Technical Notes
+- Sprite names use format `d437_###_descriptive` (from TexturePacker atlas)
+- Config values are constants and should not be modified at runtime
+- Virtual resolution 600x400 is hard-coded; if changed, update VIRTUAL_WIDTH/HEIGHT in globals.cpp
+- TILE_SIZE consistency across terrain.lua, terrain_renderer.lua, and worldstate_updaters.lua is critical
+
+---

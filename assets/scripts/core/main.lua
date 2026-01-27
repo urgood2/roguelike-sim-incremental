@@ -2,6 +2,7 @@ require("init.bit_compat")
 require("core.globals")
 -- registry is a C++ global exposed via Sol2, not a Lua module - removed invalid require
 require("ai.init") -- Read in ai scripts and populate the ai table
+require("idle_game.init")
 require("util.util")
 require("ui.ui_defs")
 require("core.entity_factory")

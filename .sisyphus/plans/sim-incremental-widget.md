@@ -578,7 +578,7 @@ Phase 7 (Polish) ← Phase 6 (Upgrades) ← Phase 5 (Debug) ← Phase 4 (Resourc
 
 ### Phase 1: Code Cleanup & Scene Setup
 
-- [ ] 1.1. Create idle_game script folder structure and integrate loading
+- [x] 1.1. Create idle_game script folder structure and integrate loading
 
   **What to do**:
   - Create `assets/scripts/idle_game/` directory
