@@ -1674,7 +1674,7 @@ Phase 7 (Polish) ← Phase 6 (Upgrades) ← Phase 5 (Debug) ← Phase 4 (Resourc
 
 ### Phase 6: Upgrade System
 
-- [ ] 6.1. TDD: Upgrade data module
+- [x] 6.1. TDD: Upgrade data module
 
   **What to do**:
   - Write tests in `assets/scripts/tests/test_idle_upgrades.lua`

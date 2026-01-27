@@ -958,3 +958,126 @@ Matches test_idle_terrain.lua and test_runner.lua:
 - Can add entity name/ID display in panel title
 - Can expose panel position/size as configurable constants
 
+---
+
+## [2026-01-27] Task 4.2 - TDD Upgrade System Complete
+
+### Implementation Strategy
+
+**TDD Workflow Applied**:
+1. RED: Wrote test_idle_upgrades.lua with 11 test cases
+2. GREEN: Implemented upgrades.lua to pass all tests
+3. VERIFIED: All tests pass (11/11 ✓), build succeeds
+
+### Files Created
+
+**Test File**: `assets/scripts/tests/test_idle_upgrades.lua`
+- 11 test cases covering all requirements:
+  1. All upgrades have name, description, base_cost (10+ total)
+  2. get_level() returns 0 initially
+  3. get_cost() applies exponential formula (base * 1.5^level)
+  4. can_afford() returns true when sufficient resources
+  5. can_afford() returns false when insufficient
+  6. purchase() deducts cost and increments level
+  7. purchase() returns false when can't afford
+  8. Max level 10 enforced (purchase fails at max)
+  9. Multiple upgrades work independently
+  10. Cost increases exponentially with level
+  11. Level persists between calls
+
+**Implementation**: `assets/scripts/idle_game/upgrades.lua`
+- Module API: get_level(), get_cost(), can_afford(), purchase(), get_all(), reset()
+- 12 upgrades defined covering diverse mechanics:
+  1. click_wood (Stronger Axe) - base_cost 10 wood
+  2. click_stone (Better Pickaxe) - base_cost 10 stone
+  3. passive_gold (Gold Mine) - base_cost 20 gold
+  4. creature_speed (Creature Training) - base_cost 15 food
+  5. forage_amount (Better Basket) - base_cost 20 wood
+  6. forage_speed (Efficient Foraging) - base_cost 25 stone
+  7. tree_regrowth (Tree Sapling Farming) - base_cost 50 gold
+  8. rock_regrowth (Rock Formation) - base_cost 50 gold
+  9. max_creatures (Better Housing) - base_cost 30 wood
+  10. starting_wood (Initial Resources I) - base_cost 40 stone
+  11. starting_stone (Initial Resources II) - base_cost 40 stone
+  12. click_range (Extended Reach) - base_cost 100 gold
+- Cost formula: `base_cost * (1.5 ^ current_level)`, floored to integer
+- Max level: 10 per upgrade (enforced in purchase/can_afford)
+
+### Test Results
+
+✅ **All 11 tests pass** (543 microseconds total):
+```
+✓ defines 10+ upgrades with name, description, and base_cost
+✓ get_level() returns 0 for unpurchased upgrade
+✓ get_cost() applies exponential formula correctly
+✓ can_afford() returns true when resources sufficient
+✓ can_afford() returns false when resources insufficient
+✓ purchase() deducts cost and increments level
+✓ purchase() returns false when insufficient resources
+✓ purchase() returns false when upgrade at max level
+✓ multiple upgrades track levels independently
+✓ cost increases exponentially across multiple levels
+✓ upgrade level persists across multiple calls
+```
+
+### Build Status
+✅ `just build-debug` succeeds - [100%] Built target raylib-cpp-cmake-template
+
+### Key Implementation Details
+
+**Cost Formula**:
+```lua
+local level = upgrades.get_level(upgrade_id)
+local cost = math.floor(base_amount * (1.5 ^ level))
+```
+- Level 0: base_cost * 1 = base_cost
+- Level 1: base_cost * 1.5 = 1.5x base
+- Level 2: base_cost * 2.25 = 2.25x base
+- Level 9: base_cost * 38.44 = 38.44x base (still reasonable)
+
+**State Management**:
+- `upgrades._levels` table stores level for each upgrade_id
+- Persists across calls (module closure pattern)
+- reset() clears all levels (for testing/new game)
+
+**Max Level Enforcement**:
+- can_afford() returns false if level >= max_level
+- purchase() checks can_afford() before deducting resources
+- Double-checked: level 10 + purchase attempt = returns false
+
+**Resource Integration**:
+- can_afford() takes resources_module parameter
+- Calls resources.get(resource_type) to check availability
+- purchase() calls resources.add(type, -amount) to deduct cost
+- Supports multiple resource types per upgrade (table iteration)
+
+### Architecture Notes
+
+- Pure Lua module, no C++ dependencies
+- Singleton pattern via closure (_levels table)
+- Upgrade definitions immutable (UPGRADES table)
+- Error handling for unknown upgrade IDs
+- Direct coupling to resources module (expected)
+
+### Test Pattern Observations
+
+1. **Test isolation**: Each test resets upgrades/resources state
+2. **Resource creation**: Tests initialize resources.init() before use
+3. **Scenario testing**: Tests verify both success and failure cases
+4. **Persistence testing**: Validates state across multiple calls
+5. **Edge case coverage**: Tests max level, zero resources, independence
+
+### Integration Ready
+
+- Module can be integrated into sim_scene.lua
+- Resources module must be required and initialized first
+- UI can display: current level, cost for next level, purchase affordability
+- Future: bind purchase() to button click handlers
+
+### Next Steps (Integration)
+
+- Call upgrades.reset() in sim_scene.lua init() (or on new game)
+- Display upgrade UI with level indicators
+- Add purchase button handlers that call upgrades.purchase()
+- Integrate upgrade effects into resource generation rates
+
