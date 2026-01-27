@@ -1306,7 +1306,7 @@ Phase 7 (Polish) ← Phase 6 (Upgrades) ← Phase 5 (Debug) ← Phase 4 (Resourc
 
 ---
 
-- [ ] 3.3. Spawn creatures with GOAP
+- [x] 3.3. Spawn creatures with GOAP
 
   **What to do**:
   - Create `assets/scripts/idle_game/spawner.lua`
