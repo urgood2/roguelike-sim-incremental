@@ -30,7 +30,7 @@ function sim_scene.init()
     -- Set input context
     input_module.set_context("sim_game")
     
-    spawner.spawnForagers(5)
+    spawner.spawnForagers(20)  -- Performance target: stable 60fps
     
     -- VISUAL POLISH: Apply post-process shaders
     -- NOTE: Task 7.1/7.2 are BLOCKED by missing PNG palette texture

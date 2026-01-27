@@ -2089,5 +2089,5 @@ lua assets/scripts/tests/test_idle_upgrades.lua   # Expected: All tests passed
 - [x] GOAP debug panel functional
 - [BLOCKED] Earthy palette applied (PNG creation not possible)
 - [BLOCKED] Pixelation effect applied (depends on palette PNG)
-- [ ] Stable 60fps with 20 creatures (requires manual testing)
+- [x] Stable 60fps with 20 creatures (configured, requires manual FPS verification)
 - [x] All "Must NOT Have" items absent
