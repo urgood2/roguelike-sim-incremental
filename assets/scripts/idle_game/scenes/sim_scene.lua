@@ -10,6 +10,7 @@ local input_module = require("idle_game.input")
 local resources = require("idle_game.resources")
 local selection = require("idle_game.selection")
 local debug_panel = require("idle_game.ui.debug_panel")
+local upgrade_panel = require("idle_game.ui.upgrade_panel")
 
 -- Store generated terrain
 local terrainGrid = nil
@@ -58,6 +59,7 @@ function sim_scene.draw()
     
     resource_panel.draw()
     debug_panel.draw()
+    upgrade_panel.draw()
 end
 
 return sim_scene

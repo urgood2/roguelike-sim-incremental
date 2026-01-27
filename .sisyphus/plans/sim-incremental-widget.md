@@ -1715,7 +1715,7 @@ Phase 7 (Polish) ← Phase 6 (Upgrades) ← Phase 5 (Debug) ← Phase 4 (Resourc
 
 ---
 
-- [ ] 6.2. Upgrade UI panel
+- [x] 6.2. Upgrade UI panel
 
   **What to do**:
   - Create `assets/scripts/idle_game/ui/upgrade_panel.lua`
