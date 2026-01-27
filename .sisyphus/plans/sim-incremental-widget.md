@@ -1375,7 +1375,7 @@ Phase 7 (Polish) ← Phase 6 (Upgrades) ← Phase 5 (Debug) ← Phase 4 (Resourc
 
 ---
 
-- [ ] 4.2. Resource UI display
+- [x] 4.2. Resource UI display
 
   **What to do**:
   - Create `assets/scripts/idle_game/ui/resource_panel.lua`

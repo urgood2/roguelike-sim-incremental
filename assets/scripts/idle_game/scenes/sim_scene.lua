@@ -5,6 +5,7 @@ local terrain = require("idle_game.terrain")
 local terrain_renderer = require("idle_game.terrain_renderer")
 local config = require("idle_game.config")
 local spawner = require("idle_game.spawner")
+local resource_panel = require("idle_game.ui.resource_panel")
 
 -- Store generated terrain
 local terrainGrid = nil
@@ -29,6 +30,8 @@ function sim_scene.draw()
     if terrainGrid then
         terrain_renderer.draw(terrainGrid)
     end
+    
+    resource_panel.draw()
 end
 
 return sim_scene
