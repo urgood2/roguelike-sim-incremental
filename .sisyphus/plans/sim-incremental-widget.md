@@ -1341,7 +1341,7 @@ Phase 7 (Polish) ← Phase 6 (Upgrades) ← Phase 5 (Debug) ← Phase 4 (Resourc
 
 ### Phase 4: Resource System
 
-- [ ] 4.1. TDD: Resource accumulation module
+- [x] 4.1. TDD: Resource accumulation module
 
   **What to do**:
   - Write tests in `assets/scripts/tests/test_idle_resources.lua`

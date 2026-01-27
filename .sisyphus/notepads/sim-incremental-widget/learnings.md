@@ -539,3 +539,209 @@ Time: 50.85ms
 
 **Build**: ✓ Succeeds with all components integrated
 
+
+## [2026-01-27 16:00] Task 3.2 - GOAP Actions Implementation Complete
+
+**Files Created**:
+- `assets/scripts/ai/actions/idle_wander.lua` - Random movement action
+- `assets/scripts/ai/actions/idle_forage.lua` - Foraging near trees (2s timer)
+- `assets/scripts/ai/actions/idle_consume.lua` - Consuming food (1s timer)
+
+**Action Patterns Learned**:
+1. **ActionResult enum usage**: Must return `ActionResult.SUCCESS/RUNNING/FAILURE`, NOT string literals
+2. **Blackboard for state**: Use `e:blackboard()` to store per-action state (timers, targets)
+3. **Timer pattern**: Initialize timer in `start()`, decrement in `update()`, return RUNNING until complete
+4. **Coordinate access**: Transform.actualX/actualY for world coords, blackboard for movement targets
+
+**idle_wander Implementation**:
+- Picks random target in `start()` and stores in blackboard
+- Moves toward target in `update()` via Transform.actualX/actualY manipulation
+- Returns RUNNING while moving, SUCCESS when within 5 pixels
+- Movement speed: 30 pixels/second
+
+**idle_forage Implementation**:
+- Preconditions: `nearTree=true, hungry=true`
+- Postconditions: `hasFood=true`
+- 2 second timer (FORAGING_TIME constant)
+- Returns RUNNING while timer > 0, SUCCESS when complete
+
+**idle_consume Implementation**:
+- Preconditions: `hasFood=true`
+- Postconditions: `hungry=false, hasFood=false`
+- 1 second timer (CONSUMPTION_TIME constant)
+- Resets hunger_timer in blackboard to 0 (starts 10s cooldown)
+
+**Build**: ✓ All actions compile and auto-load via ai/init.lua
+
+**Commit**: cb6fe422e
+
+---
+
+
+## Task 3.3 - Forager Spawner (2026-01-27)
+
+### Implementation
+Created `assets/scripts/idle_game/spawner.lua` with Poisson-disc sampling for natural creature distribution.
+
+### Key Patterns
+
+**Poisson-Disc Sampling with Forma:**
+```lua
+-- Build list of valid spawn positions (grass tiles only)
+local grass_cells = {}
+for y = 0, config.GRID_HEIGHT - 1 do
+    for x = 0, config.GRID_WIDTH - 1 do
+        if terrain.get(x, y) == terrain.GRASS then
+            table.insert(grass_cells, {x = x, y = y})
+        end
+    end
+end
+
+-- Convert to forma pattern
+local grass_pattern = pattern_module.new()
+for _, pos in ipairs(grass_cells) do
+    grass_pattern:add(pos.x, pos.y)
+end
+
+-- Sample with Poisson-disc (min separation=3, search radius unused by API)
+local spawn_positions = grass_pattern:sample_poisson(cell.euclidean, 3, math.random)
+
+-- Convert pattern to list
+local positions = {}
+for pos_cell in spawn_positions:cells() do
+    table.insert(positions, {x = pos_cell.x, y = pos_cell.y})
+end
+```
+
+**GOAP Entity Creation Workaround:**
+`ai:create_ai_entity(type)` creates a new entity with GOAPComponent attached. To spawn at specific positions, we:
+1. Create our own entity with Transform/Sprite
+2. Call `ai:create_ai_entity("forager")` to get temporary entity with GOAP
+3. Copy GOAPComponent from temp entity to our entity
+4. Destroy temp entity
+
+```lua
+local entity = registry:create()
+local transform = registry:emplace(entity, Transform)
+transform.actualX = pos.x * config.TILE_SIZE
+transform.actualY = pos.y * config.TILE_SIZE
+
+local ai_entity = ai:create_ai_entity("forager", {})
+if component_cache.has(ai_entity, GOAPComponent) then
+    local goap = component_cache.get(ai_entity, GOAPComponent)
+    registry:emplace(entity, GOAPComponent, goap)
+    registry:destroy(ai_entity)
+end
+```
+
+**Coordinate Systems:**
+- Tile coordinates: (0-29, 0-19) grid indices
+- World coordinates: actualX/actualY in pixels (multiply by TILE_SIZE=20)
+- Conversion: `worldX = tileX * 20`
+
+### Gotchas
+- `pattern:sample_poisson(distance, radius, rng)` - third param is search radius for algorithm, not spawn radius
+- Must filter terrain to GRASS before sampling (TREE/ROCK tiles not walkable)
+- GOAPComponent must be copied, not referenced (C++ component data)
+- Sprite ID "ascii_at" for '@' character (not a direct character reference)
+
+### Integration
+Added to `sim_scene.lua` init():
+```lua
+local spawner = require("idle_game.spawner")
+spawner.spawnForagers(5)
+```
+
+### Next Steps
+- Creatures now visible but need GOAP actions to execute (idle_wander, idle_forage, idle_consume)
+- Worldstate updater "forager_sensing" should update nearTree atom
+- Goal selector should activate FORAGE/CONSUME/IDLE_WANDER goals
+
+## [2026-01-27] Task 4.1 - TDD Resource Accumulation System Complete
+
+### Implementation Strategy
+
+**TDD Workflow Applied**:
+1. RED: Wrote test_idle_resources.lua with 8 test cases
+2. GREEN: Implemented resources.lua to pass all tests
+3. VERIFIED: All tests pass, build succeeds
+
+### Files Created
+
+**Test File**: `assets/scripts/tests/test_idle_resources.lua`
+- 8 test cases covering all requirements:
+  1. Initial resources = 0
+  2. add() increases resource
+  3. get() returns current amount
+  4. Cap enforcement at 9999
+  5. Negative add() decreases resource
+  6. Cannot go below 0
+  7. All 4 types independent
+  8. Passive accumulation formula works
+
+**Implementation**: `assets/scripts/idle_game/resources.lua`
+- Module API: init(), add(type, amount), get(type), update(dt, upgrade_levels)
+- Resource types: food, wood, stone, gold (exactly 4)
+- Cap: 9999 (enforced via math.max/math.min)
+- Floor: 0 (cannot go negative)
+- Passive formula: rate = base + (upgrade_level * 0.1)
+- Gold base rate: 0.1/second
+
+### Test Results
+
+✅ **All 8 tests pass** (181 microseconds total):
+```
+✓ initializes all resources to 0
+✓ add() increases resource amount
+✓ get() returns current resource amount
+✓ caps resources at 9999
+✓ add() with negative amount decreases resource
+✓ prevents resources from going below 0
+✓ all 4 resource types work independently
+✓ passive accumulation applies formula correctly
+```
+
+### Build Status
+✅ `just build-debug` succeeds - [100%] Built target raylib-cpp-cmake-template
+
+### Key Implementation Details
+
+**Clamping Pattern**:
+```lua
+local new_value = _resources[resource_type] + amount
+new_value = math.max(0, math.min(new_value, RESOURCE_CAP))
+_resources[resource_type] = new_value
+```
+
+**Passive Accumulation**:
+- Called from update(dt, upgrade_levels)
+- Gold only initially (others hardcoded to 0)
+- Rate formula handles arbitrary upgrade levels
+- Applies accumulated amount via resources.add()
+
+**Error Handling**:
+- Validates resource_type exists
+- Returns meaningful error messages
+- No silent failures
+
+### Test Structure Pattern
+
+Matches test_idle_terrain.lua and test_runner.lua:
+- Uses describe/it BDD style (via test_runner module)
+- expect() fluent matchers
+- Proper test isolation (init called before each logical group)
+- Clear test names matching specification requirements
+
+### Architecture Notes
+
+- Resources module is pure Lua, no C++ dependencies
+- Singleton pattern via closure (_resources table)
+- Immutable resource type constants
+- init() must be called before use (test harness handles this)
+- update() designed to be called every frame from idle_game/scenes/sim_scene.lua
+
+### Next Steps (Integration)
+- Call resources.init() in sim_scene.lua init()
+- Call resources.update(dt, upgrade_levels) in sim_scene.lua update()
+- Display resources in UI (future task)
+
