@@ -6,6 +6,8 @@ local terrain_renderer = require("idle_game.terrain_renderer")
 local config = require("idle_game.config")
 local spawner = require("idle_game.spawner")
 local resource_panel = require("idle_game.ui.resource_panel")
+local input_module = require("idle_game.input")
+local resources = require("idle_game.resources")
 
 -- Store generated terrain
 local terrainGrid = nil
@@ -18,11 +20,30 @@ function sim_scene.init()
     terrain.setCurrentGrid(terrainGrid)
     print(string.format("Terrain generated: %dx%d", terrainGrid.width, terrainGrid.height))
     
+    -- Initialize resources
+    resources.init()
+    
+    -- Set input context
+    input_module.set_context("sim_game")
+    
     spawner.spawnForagers(5)
 end
 
 function sim_scene.update(dt)
-    -- Will add entity updates here later
+    resources.update(dt, {gold=0})
+    
+    local tileX, tileY = input_module.handleClick(config)
+    if tileX and tileY then
+        local tile = terrain.get(tileX, tileY)
+        
+        if tile == terrain.TREE then
+            resources.add("wood", 1)
+            terrain._currentGrid:set(tileX, tileY, terrain.GRASS)
+        elseif tile == terrain.ROCK then
+            resources.add("stone", 1)
+            terrain._currentGrid:set(tileX, tileY, terrain.GRASS)
+        end
+    end
 end
 
 function sim_scene.draw()

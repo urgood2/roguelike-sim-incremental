@@ -1406,7 +1406,7 @@ Phase 7 (Polish) ← Phase 6 (Upgrades) ← Phase 5 (Debug) ← Phase 4 (Resourc
 
 ---
 
-- [ ] 4.3. Click-to-collect mechanic
+- [x] 4.3. Click-to-collect mechanic
 
   **What to do**:
   - Implement click detection on terrain tiles

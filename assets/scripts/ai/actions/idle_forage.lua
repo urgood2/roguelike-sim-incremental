@@ -26,6 +26,8 @@ return {
     
     finish = function(e)
         log_debug("idle_forage: finish for entity " .. tostring(e))
+        local resources = require("idle_game.resources")
+        resources.add("food", 1)
     end,
     
     abort = function(e, reason)

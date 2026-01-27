@@ -745,3 +745,116 @@ Matches test_idle_terrain.lua and test_runner.lua:
 - Call resources.update(dt, upgrade_levels) in sim_scene.lua update()
 - Display resources in UI (future task)
 
+
+## [2026-01-27] Task 5.1 - Click-to-Collect Mechanic Implementation
+
+### Implementation Complete
+
+**Files Created**:
+- `assets/scripts/idle_game/input.lua` - Input handling module with click detection
+
+**Files Modified**:
+- `assets/scripts/idle_game/scenes/sim_scene.lua` - Integrated input/resources into init/update
+- `assets/scripts/ai/actions/idle_forage.lua` - Added resources.add("food", 1) in finish()
+
+### Click Handling Architecture
+
+**Input Module Pattern** (`input.lua`):
+- `set_context(context)` - Sets context for debugging/future routing
+- `handleClick(config)` - Detects left mouse click and returns tile coordinates
+  - Returns: (tileX, tileY) if valid, or nil if out of bounds
+  - Uses `input.getMousePos()` for screen coordinates (letterbox-corrected)
+  - Uses `input.isMousePressed(MouseButton.MOUSE_BUTTON_LEFT)` for click detection
+  - Converts screen → tile coords: `tileX = math.floor(mouseX / TILE_SIZE)`
+  - Validates bounds: `0 <= tileX < GRID_WIDTH && 0 <= tileY < GRID_HEIGHT`
+
+### Integration in Sim Scene
+
+**init() Changes**:
+- Added `input_module.set_context("sim_game")` after terrain generation
+- Added `resources.init()` to initialize resource counters to 0
+- Maintains initialization order: terrain → resources → input → spawner
+
+**update(dt) Changes**:
+- Calls `resources.update(dt, {gold=0})` for passive gold generation (+0.1/second base)
+- Calls `input_module.handleClick(config)` to detect clicks
+- Click handling logic:
+  ```lua
+  if tileX and tileY then
+      local tile = terrain.get(tileX, tileY)
+      if tile == terrain.TREE then
+          resources.add("wood", 1)
+          terrain._currentGrid:set(tileX, tileY, terrain.GRASS)
+      elseif tile == terrain.ROCK then
+          resources.add("stone", 1)
+          terrain._currentGrid:set(tileX, tileY, terrain.GRASS)
+      end
+  end
+  ```
+- Click grass → no effect (silent ignore)
+
+### Creature Foraging Integration
+
+**idle_forage.lua finish() Function**:
+- When forage action completes (2 second timer), calls `resources.add("food", 1)`
+- Lazy-loads resources module within finish() callback
+- Already had preconditions (nearTree=true, hungry=true) and postconditions (hasFood=true)
+
+### Key Learnings
+
+**Input System**:
+- `input.getMousePos()` returns table with `.x` and `.y` fields (letterbox-corrected coordinates)
+- Must use `MouseButton.MOUSE_BUTTON_LEFT` enum (not string)
+- `input.isMousePressed()` is consumed per frame (only fires once per click)
+- Context setting via `input.set_context()` may be no-op or future routing hook
+
+**Coordinate Conversion**:
+- Screen space (pixels): (0 to 600, 0 to 400) for 30x20 grid
+- Tile space (grid): (0 to 29, 0 to 19) with TILE_SIZE=20
+- Formula: `tileX = math.floor(screenX / 20)`
+- Must use Grid:set() method, not direct array manipulation
+
+**Terrain Modification**:
+- Access current grid via `terrain._currentGrid` (singleton pattern)
+- Call `:set(tileX, tileY, value)` method to modify tile
+- Valid values: `terrain.GRASS`, `terrain.TREE`, `terrain.ROCK` (string constants)
+
+**Resource System**:
+- `resources.init()` must be called before first use (sets all to 0)
+- `resources.add(type, amount)` adds to resource (clamped 0-9999)
+- `resources.update(dt, {gold=0})` applies passive generation
+  - Gold rate = 0.1/sec + (upgrade_level * 0.1)
+  - Other resources in map are treated as 0 if missing
+- Food added via creatures, wood/stone via clicking, gold via passive
+
+### Verification
+
+✅ Build succeeds: `just build-debug`
+✅ No Lua compilation errors
+✅ Implementation matches spec exactly:
+   - Click tree → +1 wood, tree becomes grass ✓
+   - Click rock → +1 stone, rock becomes grass ✓
+   - Click grass → no effect ✓
+   - Passive gold +0.1/second ✓
+   - Creature foraging calls resources.add("food", 1) ✓
+
+### Architecture Pattern (Established)
+
+**Module Dependencies**:
+- input.lua: Pure Lua, no C++ dependencies (wraps engine input API)
+- sim_scene.lua: Orchestrator that binds terrain/resources/input
+- resources.lua: Singleton resource tracker
+- idle_forage.lua: Action that modifies resources
+
+**Execution Flow**:
+1. C++ calls main.init() → routes to sim_scene.init()
+2. sim_scene.init() sets up input context, initializes resources
+3. Each frame: C++ calls main.update(dt) → routes to sim_scene.update(dt)
+4. sim_scene.update() handles clicks and passive generation
+5. GOAP planner runs creature behaviors (forage action triggers finish → adds food)
+
+### Next Steps (Integration Ready)
+
+- Resources are integrated with both player clicking and creature foraging
+- UI panel (resource_panel.lua) can now display resource counts
+- Upgrade system can modify passive rates via upgrade_levels table
