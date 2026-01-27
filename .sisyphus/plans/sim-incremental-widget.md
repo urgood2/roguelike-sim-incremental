@@ -1212,7 +1212,7 @@ Phase 7 (Polish) ← Phase 6 (Upgrades) ← Phase 5 (Debug) ← Phase 4 (Resourc
 
 ---
 
-- [ ] 3.2. Implement GOAP actions (Wander, Forage, Idle) and register with AI system
+- [x] 3.2. Implement GOAP actions (Wander, Forage, Idle) and register with AI system
 
   **What to do**:
   - **CRITICAL INTEGRATION**: Actions are loaded via `assets/scripts/ai/init.lua:33`:
