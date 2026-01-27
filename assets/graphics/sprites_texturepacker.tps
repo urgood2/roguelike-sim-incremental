@@ -12154,10 +12154,12 @@
                     <filename>../../../../../Downloads/action_card_placeholder.png</filename>
                     <filename>../../../../../Downloads/mod_card_placeholder.png</filename>
                     <filename>../../../../../Downloads/trigger_card_placeholder.png</filename>
-                    <filename>pre-packing-files_globbed/cards_and_celestial_objects</filename>
-                    <filename>pre-packing-files_globbed/rewards/frame0012.png</filename>
-                    <filename>auto-exported-sprites-from-aseprite</filename>
-                </array>
+                     <filename>pre-packing-files_globbed/cards_and_celestial_objects</filename>
+                     <filename>pre-packing-files_globbed/rewards/frame0012.png</filename>
+                     <filename>auto-exported-sprites-from-aseprite</filename>
+                     <filename>pre-packing-files_globbed/dungeon_437</filename>
+                     <filename>pre-packing-files_globbed/dungeon_mode</filename>
+                 </array>
             </struct>
         </map>
         <key>ignoreFileList</key>
