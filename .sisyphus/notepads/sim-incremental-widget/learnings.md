@@ -384,3 +384,45 @@ Directory structure verified:
 - No auto-loaded files have hard dependencies on these modules
 - Game will boot without requiring these systems
 
+
+## [2025-01-27] Task 1.3 - Combat/Wand Directories Removed
+
+**Directories Removed**:
+- assets/scripts/combat/ ✓ (24 files deleted)
+- assets/scripts/wand/ ✓ (21 files deleted)
+
+**Tutorial Directory**: ✓ Kept (empty with .keep.lua placeholder)
+- Engine enumerates this directory at boot
+- Missing directory causes C++ failure in DirectoryIterator
+- Solution: Keep directory, remove contents
+
+**Remaining References**: All wrapped in pcall() from Task 1.3.0
+- combat.* requires in core/main.lua, core/imports.lua: SAFE (pcall wrapped)
+- combat.* requires in UI debug panels: SAFE (pcall wrapped)
+- wand.* requires in UI (wand_loadout_ui, wand_cooldown_ui, etc): SAFE (pcall wrapped)
+- wand.* requires in core/shop_system.lua: SAFE (pcall wrapped)
+- All test files (test_*.lua) with direct requires: OK (tests don't run on boot)
+
+**Build Status**: ✓ Succeeds after each removal
+- After combat/ removal: SUCCESS
+- After wand/ removal: SUCCESS
+- Final verification: SUCCESS
+
+**Commit**: 6111028ea
+```
+chore(cleanup): remove combat and wand game systems
+
+- Deleted assets/scripts/combat/ (no longer used, requires wrapped in pcall)
+- Deleted assets/scripts/wand/ (no longer used, requires wrapped in pcall)
+- Preserved assets/scripts/tutorial/ directory with .keep.lua (engine enumerates at boot)
+- All pcall() neutralizations from Task 1.3.0 prevent runtime errors
+- Build verified successful
+```
+
+**Key Learnings**:
+1. Directory removal is safe if all requires are pcall() wrapped
+2. Engine directory enumeration prevents simple directory deletion (keep empty)
+3. Test files can have hard requires since they don't load at boot
+4. The neutralization in Task 1.3.0 made this cleanup surgical with zero risk
+
+**Next**: Remaining game-specific UI directories can be addressed in follow-up tasks

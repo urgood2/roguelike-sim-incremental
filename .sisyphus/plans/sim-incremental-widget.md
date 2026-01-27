@@ -785,7 +785,7 @@ Phase 7 (Polish) ← Phase 6 (Upgrades) ← Phase 5 (Debug) ← Phase 4 (Resourc
 
 ---
 
-- [ ] 1.3. Remove unused game code (surgical)
+- [x] 1.3. Remove unused game code (surgical)
 
   **What to do**:
   - **PREREQ**: Task 1.3.0 must be completed first (neutralize auto-loaded `require("combat")` / `require("wand")`).
