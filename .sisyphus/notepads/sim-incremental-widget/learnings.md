@@ -426,3 +426,58 @@ chore(cleanup): remove combat and wand game systems
 4. The neutralization in Task 1.3.0 made this cleanup surgical with zero risk
 
 **Next**: Remaining game-specific UI directories can be addressed in follow-up tasks
+
+---
+
+## [2026-01-27] Task 2.1 - TDD Terrain Generator with Forma CA
+
+**Test File**: ✓ Created `assets/scripts/tests/test_idle_terrain.lua`
+- 5 test cases: size, determinism, validation, distribution, performance
+- TDD RED → GREEN process followed
+
+**Implementation**: ✓ Created `assets/scripts/idle_game/terrain.lua`
+- Uses forma CA library (B5678/S45678 rule)
+- Generates 30x20 grid with GRASS, TREE, ROCK tiles
+
+**All Tests Pass**: ✓ `lua assets/scripts/tests/test_idle_terrain.lua`
+```
+Total: 5 tests
+Passed: 5
+Time: 50.85ms
+```
+
+**Deterministic**: ✓ Same seed = identical output (verified)
+
+**Performance**: ✓ 7.56ms (target <100ms, easily met)
+
+**Distribution**: ✓ Within all ranges
+- GRASS: 60.7% (target 60-80%)
+- TREE: 24.3% (target 15-25%)
+- ROCK: 15.0% (target 5-15%)
+
+**Build**: ✓ `just build-debug` succeeds with no errors
+
+**Key Learnings**:
+1. **Forma module loading**: Required pre-loading script dir path BEFORE any forma modules
+   - Must set `package.path` with forma directory first in test setup
+   - Pattern path: `arg[0]:match("(.*/)")` gives script location, use relative `../external/`
+   
+2. **CA Parameters Matter**: 
+   - Initial density of 0.50 (50% cells) after B5678/S45678 converges to ~180-190 alive cells
+   - This yields good TREE/ROCK distribution when split 60% TREE / 40% ROCK
+   - Lower densities (0.40) cause pattern to collapse to zero cells
+   
+3. **Cell Access**: Forma patterns iterate cells with `:cells()` returning cell objects
+   - Access coordinates via `cell.x` and `cell.y` (properties, not methods)
+   - Cells are returned by forma.primitives.square() → domain.sample() → automata.iterate()
+   
+4. **Distribution Tuning**: 
+   - With 180 alive cells + 420 grass cells = good balance
+   - Rock ratio of 0.40 (40% of alive become rocks) yields 15% rocks in final grid
+   - Tree ratio of 0.60 (60% of alive become trees) yields 24% trees in final grid
+   
+5. **Test Structure**: Test runner properly sandboxes test with try/catch
+   - All 5 assertions validate grid properties independently
+   - Percentages calculated per-tile not per-cell for accuracy
+
+**Next Steps**: Task 2.2 will integrate this generator into idle game state manager

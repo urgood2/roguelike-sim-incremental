@@ -840,7 +840,7 @@ Phase 7 (Polish) ← Phase 6 (Upgrades) ← Phase 5 (Debug) ← Phase 4 (Resourc
 
 ### Phase 2: Terrain Generation
 
-- [ ] 2.1. TDD: Terrain generator module
+- [x] 2.1. TDD: Terrain generator module
 
   **What to do**:
   - Write tests in `assets/scripts/tests/test_idle_terrain.lua`
