@@ -124,11 +124,11 @@ t.describe("Resource System - Core Functionality", function()
             gold = 5
         }
         
-        resources.update(1.0, upgrade_levels)  -- 1 second at rate 0.6
+        resources.update(1.0, upgrade_levels)  -- 1 second with gold level 5
         
         local gold_value = resources.get("gold")
-        -- Should be approximately 0.6, allow some floating point tolerance
-        t.expect(gold_value >= 0.5 and gold_value <= 0.7).to_be_truthy()
+        -- Formula: 0.1 * (1 + 5*0.25) * 1.0 = 0.1 * 2.25 = 0.225
+        t.expect(gold_value >= 0.20 and gold_value <= 0.25).to_be_truthy()
     end)
     
 end)
