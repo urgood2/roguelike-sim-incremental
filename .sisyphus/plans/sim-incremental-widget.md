@@ -875,7 +875,7 @@ Phase 7 (Polish) ← Phase 6 (Upgrades) ← Phase 5 (Debug) ← Phase 4 (Resourc
 
 ---
 
-- [ ] 2.2. Render terrain with ASCII sprites
+- [x] 2.2. Render terrain with ASCII sprites
 
   **What to do**:
   - Create `assets/scripts/idle_game/terrain_renderer.lua`

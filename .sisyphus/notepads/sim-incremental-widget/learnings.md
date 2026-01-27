@@ -481,3 +481,37 @@ Time: 50.85ms
    - Percentages calculated per-tile not per-cell for accuracy
 
 **Next Steps**: Task 2.2 will integrate this generator into idle game state manager
+
+## [2026-01-27 13:50] Task 2.2 - Terrain Renderer with ASCII Sprites
+
+### Key Findings
+
+**Sprite UUID Mapping Pattern**: 
+- Filenames in assets: `d437_XXX_name.png`
+- UUIDs in sprites-*.json: `XXX_name_d437`
+- Example: `d437_005_club.png` → `005_club_d437`
+
+**Terrain Rendering Architecture**:
+- `terrain_renderer.lua`: Pure rendering module, decoupled from generation
+- `sim_scene.lua`: Scene controller (init/update/draw pattern)
+- `terrain.lua`: Procedural generation (cellular automata + noise)
+- Config centralizes sprite names and grid constants
+
+**Critical Implementation Details**:
+1. Must use `command_buffer.queueDrawSpriteTopLeft()` with `layer.DrawCommandSpace.World`
+2. Sprite names are **UUIDs** from JSON, not filenames
+3. Color tinting applied per-tile-type (green/dark-green/gray)
+4. Grid iteration: 0-indexed, y outer loop (row-major)
+5. Tile size 20x20 matches dungeon_437 sprite dimensions
+
+**Build & Integration**:
+- Build succeeds with no Lua compilation errors
+- All dependencies (terrain, config, renderer) properly required
+- Executable created: 35MB (includes all runtime assets)
+
+### Lessons for Future Tasks
+- UUID vs filename confusion can be caught by inspecting JSON structure early
+- Cellular automata terrain generation stable with fixed seed 12345
+- Scene draw() called every frame - efficient to iterate grid here
+- Color constructor: `Color(R, G, B, A)` expects 0-255 range
+
