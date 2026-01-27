@@ -49,15 +49,15 @@ function resources.get(resource_type)
 end
 
 -- Passive accumulation: applies per-second generation based on upgrade levels
--- Formula: rate = base_rate + (upgrade_level * 0.1)
--- upgrade_levels: {food=0, wood=0, stone=0, gold=0}
+-- Formula: rate = base_rate * (1 + upgrade_level * 0.25)
+-- upgrade_levels: {gold=0, wood=0, stone=0, gold=0}
 function resources.update(dt, upgrade_levels)
     if not dt or not upgrade_levels then return end
     
-    -- Gold base rate: 0.1/second
+    -- Gold base rate: 0.1/second, multiplied by passive_gold upgrade (25% per level)
     local gold_base = 0.1
     local gold_level = upgrade_levels.gold or 0
-    local gold_rate = gold_base + (gold_level * 0.1)
+    local gold_rate = gold_base * (1 + gold_level * 0.25)
     resources.add("gold", gold_rate * dt)
 end
 

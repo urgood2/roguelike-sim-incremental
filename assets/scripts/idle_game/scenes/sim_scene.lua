@@ -11,6 +11,7 @@ local resources = require("idle_game.resources")
 local selection = require("idle_game.selection")
 local debug_panel = require("idle_game.ui.debug_panel")
 local upgrade_panel = require("idle_game.ui.upgrade_panel")
+local upgrades = require("idle_game.upgrades")
 
 -- Store generated terrain
 local terrainGrid = nil
@@ -33,17 +34,22 @@ function sim_scene.init()
 end
 
 function sim_scene.update(dt)
-    resources.update(dt, {gold=0})
+    local passive_gold_level = upgrades.get_level("passive_gold")
+    resources.update(dt, {gold=passive_gold_level})
     
     local tileX, tileY = input_module.handleClick(config)
     if tileX and tileY then
         local tile = terrain.get(tileX, tileY)
         
         if tile == terrain.TREE then
-            resources.add("wood", 1)
+            local level = upgrades.get_level("click_wood")
+            local yield = 1 * (1 + level)
+            resources.add("wood", yield)
             terrain._currentGrid:set(tileX, tileY, terrain.GRASS)
         elseif tile == terrain.ROCK then
-            resources.add("stone", 1)
+            local level = upgrades.get_level("click_stone")
+            local yield = 1 * (1 + level)
+            resources.add("stone", yield)
             terrain._currentGrid:set(tileX, tileY, terrain.GRASS)
         end
     end

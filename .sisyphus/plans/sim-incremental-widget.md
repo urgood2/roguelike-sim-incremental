@@ -1784,7 +1784,7 @@ Phase 7 (Polish) ← Phase 6 (Upgrades) ← Phase 5 (Debug) ← Phase 4 (Resourc
 
 ---
 
-- [ ] 6.3. Apply upgrade effects
+- [x] 6.3. Apply upgrade effects
 
   **What to do**:
   - Wire upgrade levels to game systems:
