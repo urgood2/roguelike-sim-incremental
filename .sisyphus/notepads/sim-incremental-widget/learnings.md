@@ -858,3 +858,103 @@ Matches test_idle_terrain.lua and test_runner.lua:
 - Resources are integrated with both player clicking and creature foraging
 - UI panel (resource_panel.lua) can now display resource counts
 - Upgrade system can modify passive rates via upgrade_levels table
+
+## [2026-01-27] Task 5.2 - GOAP Debug Panel Implementation Complete
+
+### Implementation Complete
+
+**File Created**: `assets/scripts/idle_game/ui/debug_panel.lua`
+
+**Files Modified**: 
+- `assets/scripts/idle_game/scenes/sim_scene.lua` (2 additions)
+
+### Panel Features
+
+**Display Elements** (read-only):
+1. Current goal name - Cyan colored
+2. Current action name - Yellow colored (or gray if none)
+3. World state atoms - Grid of atom names with true/false values
+   - True values: Green
+   - False values: Red
+4. Trace events - Last 10 events in scrollable child window
+   - Message text extracted from event
+
+**Panel Positioning**:
+- Position: (10, 10) - top-left corner (ImGuiCond.Always for persistent placement)
+- Size: 250x500 pixels (fixed, no resize)
+- Title: "GOAP Debug"
+- Auto-dismisses when entity deselected
+
+### Integration Pattern
+
+**In sim_scene.lua**:
+1. Added require: `local debug_panel = require("idle_game.ui.debug_panel")`
+2. Call in draw(): `debug_panel.draw()` (executed after resource_panel)
+
+**Execution Flow**:
+- C++ calls main.draw() each frame
+- Routes to sim_scene.draw()
+- sim_scene calls terrain_renderer.draw(), resource_panel.draw(), **debug_panel.draw()**
+- debug_panel checks Selection.selected_entity
+  - If nil: immediate return (panel hidden)
+  - If valid: queries ai.get_goap_state(entity), ai.get_trace_events(entity, 10)
+  - Renders ImGui window with all four sections
+
+### Key Implementation Details
+
+**GOAP State Access**:
+- `ai.get_goap_state(entity)` returns table with:
+  - `.current_goal` (string or nil)
+  - `.current_action` (string or nil)  
+  - `.worldstate` (table mapping atom_name → boolean)
+- Returns nil if entity has no GOAPComponent
+
+**Trace Events Access**:
+- `ai.get_trace_events(entity, 10)` returns array of last 10 events
+- Each event has `.type`, `.message`, `.timestamp`
+- Returns nil or empty array if no events
+
+**ImGui Layout**:
+- SetNextWindowPos() + SetNextWindowSize() with Always flag forces fixed position
+- BeginChild() for scrollable event list (200px height)
+- TextWrapped() for long trace messages
+
+**Error Handling**:
+- Gracefully handles missing ImGui library
+- Checks for nil goap_state and handles gracefully
+- Empty events list shows "(none)" placeholder
+
+### Verification
+
+✅ Build succeeds: `just build-debug`
+✅ No Lua syntax errors
+✅ All dependencies resolved (selection, ai APIs)
+✅ File created: `assets/scripts/idle_game/ui/debug_panel.lua` (99 lines)
+✅ Integration complete in sim_scene.lua
+
+### Architecture Notes
+
+**Module Pattern**:
+- Single public function: `debug_panel.draw()`
+- State variables for panel position/size (easy to customize)
+- Follows pattern of resource_panel.lua (simple stateless render)
+
+**Selection System Integration**:
+- Uses `Selection.selected_entity` from idle_game.selection
+- Panel appears only when entity is selected
+- No coupling to selection logic - purely reads the state
+
+**AI System Integration**:
+- Wraps ai.get_goap_state() and ai.get_trace_events() with nil checks
+- Colorization helps debug GOAP execution:
+  - Goal color (cyan) = planning target
+  - Action color (yellow) = current behavior
+  - Worldstate colors (green/red) = current atomic state
+  - Trace messages = decision history
+
+### Next Steps (UI Polish)
+
+- Can add filtering/search for trace events (longer message support)
+- Can add entity name/ID display in panel title
+- Can expose panel position/size as configurable constants
+

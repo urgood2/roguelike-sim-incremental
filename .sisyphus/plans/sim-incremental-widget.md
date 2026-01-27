@@ -1611,7 +1611,7 @@ Phase 7 (Polish) ← Phase 6 (Upgrades) ← Phase 5 (Debug) ← Phase 4 (Resourc
 
 ---
 
-- [ ] 5.2. ImGui GOAP debug panel
+- [x] 5.2. ImGui GOAP debug panel
 
   **What to do**:
   - Create `assets/scripts/idle_game/ui/debug_panel.lua`
