@@ -500,7 +500,7 @@ Phase 7 (Polish) ← Phase 6 (Upgrades) ← Phase 5 (Debug) ← Phase 4 (Resourc
 
 ---
 
-- [ ] 0.2. Validate GOAP suitability for idle game
+- [x] 0.2. Validate GOAP suitability for idle game
 
   **What to do**:
   - Create minimal creature with Wander action only
@@ -543,7 +543,7 @@ Phase 7 (Polish) ← Phase 6 (Upgrades) ← Phase 5 (Debug) ← Phase 4 (Resourc
 
 ---
 
-- [ ] 0.3. Validate forma terrain generation
+- [x] 0.3. Validate forma terrain generation
 
   **What to do**:
   - Test forma cellular automata with "B5678/S45678" rule
