@@ -850,8 +850,9 @@ auto base_init() -> void {
 
   {
     startup_timer::ScopedPhase phase("window_graphics_init");
-    SetConfigFlags(FLAG_WINDOW_RESIZABLE);
+    SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_WINDOW_UNDECORATED);
     InitWindow(globals::getScreenWidth(), globals::getScreenHeight(), "Game");
+    SetWindowMinSize(400, 300); // Enforce minimum window size for UI
     SetTextureFilter(GetFontDefault().texture, TEXTURE_FILTER_POINT);
 
     // fixes mac input bug.

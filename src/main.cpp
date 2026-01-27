@@ -257,6 +257,46 @@ void RunGameLoop() {
       ZONE_SCOPED("BeginDrawing/rlImGuiBegin call");
       BeginDrawing();
 
+      // === BORDERLESS WINDOW DRAGGING ===
+      // Must run BEFORE rlImGuiBegin() so we can check WantCaptureMouse from previous frame
+      {
+          static bool isDragging = false;
+          
+          // Get ImGui state from previous frame (rlImGuiBegin hasn't been called yet)
+          ImGuiIO& io = ImGui::GetIO();
+          
+          // Only drag if ImGui doesn't want the mouse
+          if (!io.WantCaptureMouse) {
+              Vector2 mousePos = GetMousePosition();
+              int screenW = GetScreenWidth();
+              int screenH = GetScreenHeight();
+              int edgeMargin = 10;  // resize zone width
+              
+              // Check if in drag area (not near edges, reserved for resize)
+              bool inDragArea = mousePos.x > edgeMargin && mousePos.x < screenW - edgeMargin &&
+                               mousePos.y > edgeMargin && mousePos.y < screenH - edgeMargin;
+              
+              if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && inDragArea) {
+                  isDragging = true;
+              }
+              
+              if (IsMouseButtonReleased(MOUSE_LEFT_BUTTON)) {
+                  isDragging = false;
+              }
+              
+              if (isDragging && IsMouseButtonDown(MOUSE_LEFT_BUTTON)) {
+                  Vector2 mouseDelta = GetMouseDelta();
+                  Vector2 windowPos = GetWindowPosition();
+                  SetWindowPosition((int)(windowPos.x + mouseDelta.x), 
+                                   (int)(windowPos.y + mouseDelta.y));
+              }
+          } else {
+              // ImGui wants mouse - cancel any drag
+              isDragging = false;
+          }
+      }
+      // === END BORDERLESS WINDOW DRAGGING ===
+
 #ifndef __EMSCRIPTEN__
 
       if (globals::getUseImGUI())
