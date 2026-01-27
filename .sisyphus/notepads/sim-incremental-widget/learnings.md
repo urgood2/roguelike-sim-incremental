@@ -283,3 +283,46 @@ Directory structure verified:
 - TILE_SIZE consistency across terrain.lua, terrain_renderer.lua, and worldstate_updaters.lua is critical
 
 ---
+
+## [2026-01-27] Task 1.2 - Minimal Sim Scene with Direct Launch
+
+### Implementation Complete
+
+**Files Created:**
+- `assets/scripts/idle_game/scenes/sim_scene.lua` - Minimal scene with init/update/draw
+
+**Files Modified:**
+- `assets/scripts/core/main.lua` - 7 specific edits
+
+### Changes Summary
+
+1. **sim_scene.lua** - New module with three stub functions:
+   - `init()`: Prints confirmation message
+   - `update(dt)`: Ready for entity updates
+   - `draw()`: Queues dark green background (verification marker)
+
+2. **main.lua edits**:
+   - Line 6: Require sim_scene module
+   - Line 50: Add GAMESTATE.SIM_GAME = 2
+   - Lines 951-952: Handle SIM_GAME in changeGameState()
+   - Line 1142: Launch directly into SIM_GAME (bypass MAIN_MENU)
+   - Line 1144: Guard autoStartMainGameEnv to not override SIM_GAME
+   - Lines 1207-1210: Route update to sim_scene when not paused
+   - Lines 1248-1250: Route draw to sim_scene
+
+### Verification
+
+✅ Build succeeds (debug build)
+✅ Game launches directly into sim scene (no menu)
+✅ `sim_scene.init() called` appears in console
+✅ No Lua errors during init/update/draw cycle
+✅ Dark green background renders (proving scene is active)
+
+### Architecture Notes
+
+- Game execution model: C++ calls main.init/update/draw each frame
+- Lua routes these calls based on currentGameState variable
+- sim_scene is just Lua (no C++ integration needed yet)
+- command_buffer is C++ global (not a require)
+- Col(r,g,b,a) is the color constructor, not Color()
+

@@ -3,6 +3,7 @@ require("core.globals")
 -- registry is a C++ global exposed via Sol2, not a Lua module - removed invalid require
 require("ai.init") -- Read in ai scripts and populate the ai table
 require("idle_game.init")
+local sim_scene = require("idle_game.scenes.sim_scene")
 require("util.util")
 require("ui.ui_defs")
 require("core.entity_factory")
@@ -45,7 +46,8 @@ PROFILE_ENABLED = false -- set to true to enable profiling
 -- Game state (used only in lua)
 GAMESTATE = {
     MAIN_MENU = 0,
-    IN_GAME = 1
+    IN_GAME = 1,
+    SIM_GAME = 2
 }
 
 shapeAnimationPhase = 0
@@ -946,6 +948,8 @@ function changeGameState(newState)
         initMainMenu()
     elseif newState == GAMESTATE.IN_GAME then
         initMainGame()
+    elseif newState == GAMESTATE.SIM_GAME then
+        sim_scene.init()
     else
         error("Invalid game state: " .. tostring(newState))
     end
@@ -1133,11 +1137,11 @@ function main.init()
     -- true,
     -- nil, -- no "after" callback
     -- "tooltip_hide_timer" -- unique tag for this timer
-    -- )
+     -- )
     
-    changeGameState(GAMESTATE.MAIN_MENU) -- Initialize the game in the IN_GAME state
+    changeGameState(GAMESTATE.SIM_GAME) -- Initialize the game in the SIM_GAME state
 
-    if autoStartMainGameEnv then
+    if autoStartMainGameEnv and currentGameState ~= GAMESTATE.SIM_GAME then
         timer.after(0.25, function()
             print("[DEBUG ACTION] AUTO_START_MAIN_GAME triggering startGameButtonCallback()")
             if startGameButtonCallback then
@@ -1200,6 +1204,11 @@ function main.update(dt)
     -- Runs even when paused so UI text still renders
     Text.update(dt)
 
+    -- SIM_GAME update - runs when not paused
+    if currentGameState == GAMESTATE.SIM_GAME and not isPaused then
+        sim_scene.update(dt)
+    end
+
     if (currentGameState == GAMESTATE.MAIN_MENU) then
         globals.main_menu_elapsed_time = globals.main_menu_elapsed_time + dt
         SpecialItem.update(dt)
@@ -1236,6 +1245,7 @@ function main.update(dt)
 end
 
 function main.draw(dt)
-   -- tracy.zoneBeginN("lua main.draw") -- just some default depth to avoid bugs
-   -- tracy.zoneEnd()
+    if currentGameState == GAMESTATE.SIM_GAME then
+        sim_scene.draw()
+    end
 end

@@ -621,7 +621,7 @@ Phase 7 (Polish) ← Phase 6 (Upgrades) ← Phase 5 (Debug) ← Phase 4 (Resourc
 
 ---
 
-- [ ] 1.2. Create minimal game scene with Lua-level scene switching
+- [x] 1.2. Create minimal game scene with Lua-level scene switching
 
   **What to do**:
   - Create `assets/scripts/idle_game/scenes/sim_scene.lua` with `init()`, `update(dt)`, `draw()` functions
