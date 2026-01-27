@@ -747,7 +747,7 @@ Phase 7 (Polish) ← Phase 6 (Upgrades) ← Phase 5 (Debug) ← Phase 4 (Resourc
 
 ---
 
-- [ ] 1.3.0. Pre-cleanup: neutralize auto-loaded Lua files that require combat/wand
+- [x] 1.3.0. Pre-cleanup: neutralize auto-loaded Lua files that require combat/wand
 
   **Why this exists (CRITICAL)**:
   - The engine auto-loads and executes *all* `.lua` files in configured directories at startup.

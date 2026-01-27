@@ -326,3 +326,61 @@ Directory structure verified:
 - command_buffer is C++ global (not a require)
 - Col(r,g,b,a) is the color constructor, not Color()
 
+
+## [2026-01-27] Task 1.3.0 - Combat/Wand Dependencies Neutralized
+
+### Auto-Loaded Directories Scanned
+5 total: `core/`, `tutorial/`, `monobehavior/`, `task/`, `ai/`
+
+### Files Found with Hard Dependencies
+6 offending auto-loaded files identified:
+
+1. **core/gameplay.lua** (lines 13-26)
+   - Hard-requires: `combat.combat_system`, `combat.wave_test_init`, `wand.wand_executor`, `wand.wand_triggers`, `wand.tag_evaluator`, `wand.avatar_system`, `wand.joker_system`
+   - **Solution**: MOVED to `idle_game/legacy/gameplay.lua` (removed from auto-load)
+   - Rationale: File is game-specific, not needed for sim widget; moving keeps it available but doesn't auto-load
+
+2. **core/main.lua** (line 15)
+   - Hard-requires: `combat.combat_system`
+   - **Solution**: WRAPPED in pcall (added conditional require)
+   - Status: Accessible if available, gracefully fails if missing
+
+3. **core/imports.lua** (lines 113-115)
+   - Already wrapped in pcall - **NO CHANGE NEEDED**
+   - Already safe for missing combat/wand
+
+4. **core/card_eval_order_test.lua**
+   - Hard-requires: `wand.card_registry` (indirectly via WandEngine)
+   - **Solution**: DELETED (test file, not needed for production or sim widget)
+
+5. **core/shop_system.lua** (lines 422, 541)
+   - Requires: `wand.card_upgrade_system` inside functions (lazy-load)
+   - Status: **NO CHANGE NEEDED** - already safe (lazy-loaded in functions, not at module level)
+
+6. **ai/enemies/ranged_enemy_example.lua** (line 12)
+   - Hard-requires: `combat.enemy_shooter`
+   - **Solution**: DELETED (example file, not needed for sim widget)
+
+### Results
+- **Auto-Loaded Files Scanned**: 165+ files
+- **Problem Files Found**: 6
+- **Moved**: 1 (gameplay.lua)
+- **Deleted**: 2 (card_eval_order_test.lua, ranged_enemy_example.lua)
+- **Already Safe**: 3 (imports.lua, main.lua via pcall, shop_system.lua via lazy-load)
+
+### Build Status
+✓ Build succeeds: `just build-debug`
+✓ Game boots: No Lua require errors
+✓ No missing module errors in boot sequence
+
+### Key Insights
+1. **Auto-load problem was clear**: Lines 13-26 of gameplay.lua would crash immediately if combat/wand missing
+2. **Moving is better than wrapping**: Gameplay.lua has too many dependencies to wrap; moving avoids the issue entirely
+3. **Lazy loading works**: shop_system.lua shows that functions can safely require combat/wand modules
+4. **Tutorial directory preserved**: Per plan requirement (engine expects it to exist)
+
+### Ready for Task 1.3
+- Can now safely delete `combat/` and `wand/` directories
+- No auto-loaded files have hard dependencies on these modules
+- Game will boot without requiring these systems
+

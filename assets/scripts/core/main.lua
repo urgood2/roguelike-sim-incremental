@@ -7,12 +7,14 @@ local sim_scene = require("idle_game.scenes.sim_scene")
 require("util.util")
 require("ui.ui_defs")
 require("core.entity_factory")
-require("core.gameplay")
+-- NOTE: core/gameplay.lua moved to idle_game/legacy/ (had hard requires on combat/wand)
+-- pcall(function() require("idle_game.legacy.gameplay") end)
 local profile = require("external.profile")  -- https://github.com/2dengine/profile.lua
 local z_orders = require("core.z_orders")
 local Node = require("monobehavior.behavior_script_v2") -- the new monobehavior script
 local palette = require("color.palette")
-local combat_core = require("combat.combat_system")
+local combat_core
+pcall(function() combat_core = require("combat.combat_system") end)
 local TimerChain = require("core.timer_chain")
 local timer = require("core.timer")
 local component_cache = require("core.component_cache")
