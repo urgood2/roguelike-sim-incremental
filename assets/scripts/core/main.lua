@@ -3,6 +3,8 @@ require("core.globals")
 -- registry is a C++ global exposed via Sol2, not a Lua module - removed invalid require
 require("ai.init") -- Read in ai scripts and populate the ai table
 require("idle_game.init")
+-- Set up forma package aliases before any forma modules are loaded
+require("core.procgen.vendor")
 local sim_scene = require("idle_game.scenes.sim_scene")
 require("util.util")
 require("ui.ui_defs")
@@ -28,7 +30,10 @@ local shader_prepass = require("shaders.prepass_example")
 lume = require("external.lume")
 local TextBuilderDemo = require("demos.text_builder_demo")
 local Text = require("core.text") -- TextBuilder system for fire-and-forget text
-local TutorialDialogueDemo = require("tutorial.dialogue.demo")
+local ok_tutorial, TutorialDialogueDemo = pcall(require, "tutorial.dialogue.demo")
+if not ok_tutorial then
+    TutorialDialogueDemo = nil
+end
 local LightingDemo = require("demos.lighting_demo")
 local UIFillerDemo = require("demos.ui_filler_demo")
 -- local RenderGroupsTest = require("tests.test_render_groups_visual") -- Visual test for render groups (disabled: DrawRenderGroup command not registered)

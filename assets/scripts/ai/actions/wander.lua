@@ -19,7 +19,10 @@ return {
         
         --TODO: find random location on the map, activate movement towards that location, continue wandering until the entity reaches that location, turn off walk timer
         
-        local goalLoc = Vec2(random_utils.random_float(0, globals.screenWidth()), random_utils.random_float(0, globals.screenHeight()))
+        local config = require("idle_game.config")
+        local maxX = config.GRID_WIDTH * config.TILE_SIZE
+        local maxY = config.GRID_HEIGHT * config.TILE_SIZE
+        local goalLoc = Vec2(random_utils.random_float(0, maxX), random_utils.random_float(0, maxY))
         
         -- save in blackboard
     

@@ -85,6 +85,14 @@ function terrain.get(tileX, tileY)
     return terrain._currentGrid:get(tileX, tileY)
 end
 
+function terrain.set(tileX, tileY, value)
+    if not terrain._currentGrid then return false end
+    if tileX < 0 or tileX >= terrain._currentGrid.width then return false end
+    if tileY < 0 or tileY >= terrain._currentGrid.height then return false end
+    terrain._currentGrid:set(tileX, tileY, value)
+    return true
+end
+
 function terrain.isNearTileType(tileX, tileY, tileType, radius)
     for dy = -radius, radius do
         for dx = -radius, radius do

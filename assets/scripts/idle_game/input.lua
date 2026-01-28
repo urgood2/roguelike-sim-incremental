@@ -1,19 +1,29 @@
-local input = {}
+local sim_input = {}
 
 -- Set input context for the sim game
-function input.set_context(context)
+function sim_input.set_context(context)
     -- TODO: This might need to route to C++ input system if context switching is needed
     -- For now, just track context for debugging
-    input._context = context
+    sim_input._context = context
 end
 
 -- Handle click input for the sim game
 -- Returns: tile_x, tile_y if valid click, or nil if out of bounds
-function input.handleClick(config)
-    if not input.isMousePressed(MouseButton.MOUSE_BUTTON_LEFT) then
-        return nil
+function sim_input.handleClick(config)
+    -- Use global IsMouseButtonPressed (Raylib) or fallback
+    local mousePressed = false
+    if IsMouseButtonPressed then
+        mousePressed = IsMouseButtonPressed(0)  -- 0 = left mouse button
     end
     
+    if not mousePressed then
+        return nil
+    end
+
+    -- Use global input module's getMousePos
+    if not input or not input.getMousePos then
+        return nil
+    end
     local mouse = input.getMousePos()
     local mouseX = mouse.x
     local mouseY = mouse.y
@@ -31,4 +41,4 @@ function input.handleClick(config)
     return nil
 end
 
-return input
+return sim_input

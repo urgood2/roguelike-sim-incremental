@@ -129,13 +129,6 @@ auto loadJSONData() -> void {
 
     // TODO: add all asset folder items to uuids
 
-    // auto path  =
-    // util::getAssetPathUUIDVersion("localization/ui_strings.json");
-    // jsonStream.open(util::getAssetPathUUIDVersion("localization/ui_strings.json"));
-    // globals::uiStringsJSON = json::parse(jsonStream);
-
-    jsonStream.close();
-
     auto assignJson = [&](const std::string &path, json &target,
                           json *ctxSlot) {
       auto loadResult = util::tryWithLog(

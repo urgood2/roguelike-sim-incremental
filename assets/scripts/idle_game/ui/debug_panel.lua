@@ -105,8 +105,8 @@ function debug_panel.draw()
                 local msg = event.message or tostring(event.type or "")
                 ImGui.TextWrapped(msg)
             end
-            ImGui.EndChild()
         end
+        ImGui.EndChild()  -- Must always be called after BeginChild
     end
     
     ImGui.End()

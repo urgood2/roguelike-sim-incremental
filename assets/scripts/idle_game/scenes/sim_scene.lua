@@ -19,32 +19,40 @@ local terrainGrid = nil
 function sim_scene.init()
     print("sim_scene.init() called")
     
-    -- Generate terrain with fixed seed
     terrainGrid = terrain.generate(12345, config.GRID_WIDTH, config.GRID_HEIGHT)
     terrain.setCurrentGrid(terrainGrid)
     print(string.format("Terrain generated: %dx%d", terrainGrid.width, terrainGrid.height))
     
-    -- Initialize resources
     resources.init()
-    
-    -- Set input context
     input_module.set_context("sim_game")
     
-    spawner.spawnForagers(20)  -- Performance target: stable 60fps
+    local screenW = globals.screenWidth()
+    local screenH = globals.screenHeight()
+    local gridPixelW = config.GRID_WIDTH * config.TILE_SIZE
+    local gridPixelH = config.GRID_HEIGHT * config.TILE_SIZE
     
-    -- VISUAL POLISH: Apply post-process shaders
-    -- NOTE: Task 7.1/7.2 are BLOCKED by missing PNG palette texture
-    -- TODO: Create assets/graphics/palettes/earthy.png (8-16 color 1D horizontal strip)
-    --       Reference format: assets/graphics/palettes/resurrect-64-1x.png
-    --       Once created, uncomment the following lines:
-    --
-    -- local spriteLayer = layers.sprites
-    -- spriteLayer:addPostProcessShader("palette_quantize")
-    -- setPaletteTexture("palette_quantize", "graphics/palettes/earthy.png")
-    -- spriteLayer:addPostProcessShader("pixelate_image")
-    -- globalShaderUniforms:set("pixelate_image", "pixelRatio", 0.5)
-    -- local VW, VH = globals.screenWidth(), globals.screenHeight()
-    -- globalShaderUniforms:set("pixelate_image", "texSize", Vector2{ x = VW, y = VH })
+    local zoomX = screenW / gridPixelW
+    local zoomY = screenH / gridPixelH
+    local zoom = math.min(zoomX, zoomY)
+    
+    local ok, err = pcall(function()
+        if camera and camera.Exists and camera.Exists("world_camera") then
+            local cam = camera.Get("world_camera")
+            if cam.SetActualZoom then cam:SetActualZoom(zoom) end
+            if cam.SetVisualZoom then cam:SetVisualZoom(zoom) end
+            if cam.SetActualTarget then cam:SetActualTarget(gridPixelW / 2, gridPixelH / 2) end
+            if cam.SetActualOffset then cam:SetActualOffset(screenW / 2, screenH / 2) end
+            print(string.format("Camera zoom set to %.2f", zoom))
+        elseif camera and camera.Create then
+            camera.Create("world_camera", gridPixelW / 2, gridPixelH / 2, zoom, 0)
+            print(string.format("Created world_camera with zoom %.2f", zoom))
+        end
+    end)
+    if not ok then
+        print("Camera setup failed: " .. tostring(err))
+    end
+    
+    spawner.spawnForagers(20)
 end
 
 function sim_scene.update(dt)
@@ -59,12 +67,12 @@ function sim_scene.update(dt)
             local level = upgrades.get_level("click_wood")
             local yield = 1 * (1 + level)
             resources.add("wood", yield)
-            terrain._currentGrid:set(tileX, tileY, terrain.GRASS)
+            terrain.set(tileX, tileY, terrain.GRASS)
         elseif tile == terrain.ROCK then
             local level = upgrades.get_level("click_stone")
             local yield = 1 * (1 + level)
             resources.add("stone", yield)
-            terrain._currentGrid:set(tileX, tileY, terrain.GRASS)
+            terrain.set(tileX, tileY, terrain.GRASS)
         end
     end
     

@@ -6,12 +6,25 @@ local Selection = {
 local config = require("idle_game.config")
 
 function Selection.update()
-    if not input.isMousePressed(MouseButton.MOUSE_BUTTON_LEFT) then
+    local mousePressed = IsMouseButtonPressed and IsMouseButtonPressed(0)
+    if not mousePressed then
         return
     end
     
     local mouse = input.getMousePos()
-    local clicked = Selection.findEntityAtPosition(mouse.x, mouse.y)
+    local worldX, worldY = mouse.x, mouse.y
+    
+    if camera and camera.Exists and camera.Exists("world_camera") then
+        local cam = camera.Get("world_camera")
+        if cam and cam.GetMouseWorld then
+            local worldMouse = cam:GetMouseWorld()
+            if worldMouse then
+                worldX, worldY = worldMouse.x, worldMouse.y
+            end
+        end
+    end
+    
+    local clicked = Selection.findEntityAtPosition(worldX, worldY)
     
     if Selection._previous_entity and Selection._previous_entity ~= clicked then
         Selection._removeOutline(Selection._previous_entity)
@@ -26,15 +39,20 @@ function Selection.update()
 end
 
 function Selection.findEntityAtPosition(x, y)
-    local goap_entities = ai.list_goap_entities()
-    
+    if not ai or not ai.list_goap_entities then
+        return nil
+    end
+    local goap_entities = ai.list_goap_entities() or {}
+
     for _, entity in ipairs(goap_entities) do
         if registry:valid(entity) and registry:has(entity, Transform) then
             local t = registry:get(entity, Transform)
             local halfSize = config.TILE_SIZE / 2
             
-            if x >= t.visualX - halfSize and x <= t.visualX + halfSize and
-               y >= t.visualY - halfSize and y <= t.visualY + halfSize then
+            local entityX = t.actualX or t.visualX or 0
+            local entityY = t.actualY or t.visualY or 0
+            if x >= entityX - halfSize and x <= entityX + halfSize and
+               y >= entityY - halfSize and y <= entityY + halfSize then
                 return entity
             end
         end

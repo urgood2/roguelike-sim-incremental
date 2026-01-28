@@ -16,20 +16,44 @@ local TILE_SPRITES = {
     [terrain.ROCK] = config.SPRITE_ROCK,     -- "033_33_d437_symbol"
 }
 
--- Tile colors for tinting
-local TILE_COLORS = {
-    [terrain.GRASS] = Color(34, 139, 34, 255),    -- Forest green
-    [terrain.TREE] = Color(19, 89, 19, 255),      -- Dark green (trees)
-    [terrain.ROCK] = Color(128, 128, 128, 255),   -- Gray
-}
+-- Tile colors for tinting (must be Color userdata, not tables)
+local TILE_COLORS = nil
 
--- Draw terrain grid
+local function initColors()
+    if not TILE_COLORS then
+        TILE_COLORS = {
+            [terrain.GRASS] = util.getColor("FOREST GREEN"),
+            [terrain.TREE] = util.getColor("DARK GREEN"),
+            [terrain.ROCK] = util.getColor("GRAY"),
+        }
+    end
+end
+
+local _debug_logged = false
+
 function terrain_renderer.draw(terrainGrid)
+    initColors()
+    
     if not terrainGrid then
+        print("[terrain_renderer] ERROR: terrainGrid is nil!")
         return
     end
     
-    -- Draw each tile using queueDrawSpriteTopLeft
+    if not _debug_logged then
+        print(string.format("[terrain_renderer] Drawing grid %dx%d", terrainGrid.width, terrainGrid.height))
+        _debug_logged = true
+    end
+    
+    if not command_buffer then
+        print("[terrain_renderer] ERROR: command_buffer is nil!")
+        return
+    end
+    
+    if not layers or not layers.sprites then
+        print("[terrain_renderer] ERROR: layers.sprites is nil!")
+        return
+    end
+    
     for y = 0, terrainGrid.height - 1 do
         for x = 0, terrainGrid.width - 1 do
             local tileType = terrainGrid:get(x, y)
@@ -47,7 +71,7 @@ function terrain_renderer.draw(terrainGrid)
                         c.dstH = TILE_SIZE
                         c.tint = color
                     end,
-                    0,  -- depth
+                    0,
                     layer.DrawCommandSpace.World
                 )
             end

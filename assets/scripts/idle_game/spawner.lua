@@ -10,7 +10,7 @@ local cell = require("external.forma.cell")
 --- @param count number Number of creatures to spawn
 --- @return table List of spawned entity IDs
 function spawner.spawnForagers(count)
-    print(string.format("Spawning %d foragers...", count))
+    log_debug(string.format("[SPAWNER] Spawning %d foragers...", count))
     
     -- Build list of all grass tile coordinates
     local grass_cells = {}
@@ -31,7 +31,7 @@ function spawner.spawnForagers(count)
     -- Convert grass cells to forma pattern
     local grass_pattern = pattern_module.new()
     for _, pos in ipairs(grass_cells) do
-        grass_pattern:add(pos.x, pos.y)
+        grass_pattern:insert(pos.x, pos.y)
     end
     
     -- Sample using Poisson-disc distribution
@@ -52,38 +52,36 @@ function spawner.spawnForagers(count)
     -- Spawn entities
     local spawned = {}
     for i, pos in ipairs(positions) do
-        -- Create entity with Transform and Sprite
-        local entity = registry:create()
+        -- Create GOAP entity of type "forager"
+        -- This creates entity with Transform and GOAPComponent already configured
+        local entity = create_ai_entity("forager")
         
         -- Set position (convert tile coords to world coords)
-        local transform = registry:emplace(entity, Transform)
+        local transform = component_cache.get(entity, Transform)
         transform.actualX = pos.x * config.TILE_SIZE
         transform.actualY = pos.y * config.TILE_SIZE
-        transform.actualW = config.TILE_SIZE
-        transform.actualH = config.TILE_SIZE
         
-        -- Add sprite component (using '@' ASCII character for forager)
-        local sprite = registry:emplace(entity, Sprite)
-        sprite.sprite_id = "011_d437_male"
-        sprite.visible = true
+        -- Set up visual using animation system with a static sprite
+        animation_system.setupAnimatedObjectOnEntity(
+            entity,
+            "d437_011_male.png",
+            true,
+            nil,
+            false
+        )
         
-        -- Create GOAP entity of type "forager"
-        -- This attaches GOAPComponent and initializes worldstate from ai/entity_types/forager.lua
-        local ai_entity = ai:create_ai_entity("forager", {})
-        
-        -- Copy GOAP component from ai_entity to our entity
-        -- (ai:create_ai_entity creates a new entity, we need to transfer the component)
-        if component_cache.has(ai_entity, GOAPComponent) then
-            local goap = component_cache.get(ai_entity, GOAPComponent)
-            registry:emplace(entity, GOAPComponent, goap)
-            registry:destroy(ai_entity)  -- Clean up temporary entity
-        end
+        -- Resize to fit tile size
+        animation_system.resizeAnimationObjectsInEntityToFit(
+            entity,
+            config.TILE_SIZE,
+            config.TILE_SIZE
+        )
         
         table.insert(spawned, entity)
-        print(string.format("Spawned forager #%d at tile (%d, %d)", i, pos.x, pos.y))
+        log_debug(string.format("[SPAWNER] Spawned forager #%d at tile (%d, %d) -> pixel (%d, %d)", i, pos.x, pos.y, pos.x * config.TILE_SIZE, pos.y * config.TILE_SIZE))
     end
     
-    print(string.format("Successfully spawned %d foragers", #spawned))
+    log_debug(string.format("[SPAWNER] Successfully spawned %d foragers", #spawned))
     return spawned
 end
 
