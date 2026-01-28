@@ -3428,6 +3428,17 @@ function startEntityWalkMotion(e)
   )
 end
 
+-- stops walk animation for an entity (cancels the timer started by startEntityWalkMotion)
+function stopEntityWalkMotion(e)
+  timer.cancel(e .. "_walk_timer")
+  if entity_cache.valid(e) then
+    local t = component_cache.get(e, Transform)
+    if t then
+      t.actualR = 0
+    end
+  end
+end
+
 function spawnRainPlopAtRandomLocation()
     local randomX = random_utils.random_int(0, globals.screenWidth() - 1)
     local randomY = random_utils.random_int(0, globals.screenHeight() - 1)

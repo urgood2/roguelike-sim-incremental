@@ -13,13 +13,14 @@ return {
     update = function(e, dt)
         local timer = getBlackboardFloat(e, "forage_timer") or 0
         timer = timer + dt
-        
+
         if timer >= 2.0 then
             ai.set_worldstate(e, "hasFood", true)
-            ai.set_worldstate(e, "hungry", false)
+            -- NOTE: Don't set hungry=false here - that's idle_consume's job
+            -- Setting it here short-circuits the forage->consume chain
             return ActionResult.SUCCESS
         end
-        
+
         setBlackboardFloat(e, "forage_timer", timer)
         return ActionResult.RUNNING
     end,

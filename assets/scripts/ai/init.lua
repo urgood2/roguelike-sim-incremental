@@ -103,16 +103,17 @@ ai.goals  = ai.goals  or {
     end
   },
 
-  -- WORK band: Patrol duty
+  -- WORK band: Patrol duty (continuous wandering for idle sim)
   DEMO_PATROL = {
     band    = "WORK",
     persist = 0.08,
     desire  = function(e, S)
-      -- Want to patrol if not currently patrolling
-      local patrolling = ai.get_worldstate(e, "patrolling")
-      return (not patrolling) and 0.7 or 0.0
+      -- Always desire patrol for continuous wandering behavior
+      return 0.7
     end,
     on_apply = function(e)
+      -- Reset patrolling to false so GOAP will plan a new patrol action
+      ai.set_worldstate(e, "patrolling", false)
       ai.set_goal(e, { patrolling = true })
     end
   },

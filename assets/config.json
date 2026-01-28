@@ -12,8 +12,8 @@
     },
     "render_data": {
         "screen": {
-            "width": 1440,
-            "height": 900
+            "width": 600,
+            "height": 400
         },
         "game_world_viewport": {
             "width": 1100,

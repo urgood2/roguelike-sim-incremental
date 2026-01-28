@@ -1,6 +1,14 @@
 -- These will run every frame per ai entity.
 
 return {
+    -- Reset wander state so foragers continuously wander
+    wander_reset = function(entity, dt)
+        -- Only reset if wander is currently true (just completed wandering)
+        if ai.get_worldstate(entity, "wander") == true then
+            ai.set_worldstate(entity, "wander", false)
+        end
+    end,
+
     hunger_check = function(entity, dt)
         -- TODO: Implement hunger check logic
         local bb = ai.get_blackboard(entity)

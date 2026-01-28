@@ -56,7 +56,8 @@ function spawner.spawnForagers(count)
         -- This creates entity with Transform and GOAPComponent already configured
         local entity = create_ai_entity("forager")
         
-        -- Set position (convert tile coords to world coords)
+        -- Set position at tile origin (top-left of tile, not center)
+        -- This ensures grid-aligned rendering
         local transform = component_cache.get(entity, Transform)
         transform.actualX = pos.x * config.TILE_SIZE
         transform.actualY = pos.y * config.TILE_SIZE
