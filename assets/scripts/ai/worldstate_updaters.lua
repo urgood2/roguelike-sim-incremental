@@ -128,15 +128,33 @@ return {
     forager_sensing = function(entity, dt)
         local transform = registry:get(entity, Transform)
         if not transform then return end
-        
+
         local TILE_SIZE = 20
         local tileX = math.floor(transform.actualX / TILE_SIZE)
         local tileY = math.floor(transform.actualY / TILE_SIZE)
-        
+
         local terrain = require("idle_game.terrain")
+
+        -- Sense nearby trees and rocks for harvesting
         local nearTree = terrain.isNearTileType(tileX, tileY, terrain.TREE, 2)
+        local nearRock = terrain.isNearTileType(tileX, tileY, terrain.ROCK, 2)
         ai.set_worldstate(entity, "nearTree", nearTree)
-        
+        ai.set_worldstate(entity, "nearRock", nearRock)
+
+        -- Debug logging (every 3 seconds per entity via frame counting)
+        local sense_frame = ai.bb.get(entity, "sense_log_frame", 0) + 1
+        ai.bb.set(entity, "sense_log_frame", sense_frame)
+        if sense_frame % 180 == 1 and (nearTree or nearRock) then
+            log_debug(string.format("[forager_sensing] entity=%s tile=(%d,%d) nearTree=%s nearRock=%s",
+                tostring(entity), tileX, tileY, tostring(nearTree), tostring(nearRock)))
+        end
+
+        -- Reset didWork flag so foragers can work again
+        if ai.get_worldstate(entity, "didWork") == true then
+            ai.set_worldstate(entity, "didWork", false)
+        end
+
+        -- Hunger system (foragers get hungry over time)
         local hungry = ai.get_worldstate(entity, "hungry")
         if not hungry then
             local hunger_timer = ai.bb.get(entity, "hunger_timer", 0) + dt

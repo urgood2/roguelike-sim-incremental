@@ -59,6 +59,59 @@ ai.goals  = ai.goals  or {
     end
   },
 
+  -- WORK: Harvest wood when near trees (foragers gather resources for player)
+  HARVEST_WOOD = {
+    band    = "WORK",
+    persist = 0.1,
+    desire  = function(e, S)
+      local nearTree = ai.get_worldstate(e, "nearTree")
+      return nearTree == true and 0.8 or 0.0
+    end,
+    on_apply = function(e)
+      ai.set_goal(e, { didWork = true })
+    end
+  },
+
+  -- WORK: Harvest stone when near rocks
+  HARVEST_STONE = {
+    band    = "WORK",
+    persist = 0.1,
+    desire  = function(e, S)
+      local nearRock = ai.get_worldstate(e, "nearRock")
+      return nearRock == true and 0.75 or 0.0
+    end,
+    on_apply = function(e)
+      ai.set_goal(e, { didWork = true })
+    end
+  },
+
+  -- SURVIVAL: Forage food when hungry and near tree
+  FORAGE = {
+    band    = "SURVIVAL",
+    persist = 0.12,
+    desire  = function(e, S)
+      local hungry = ai.get_worldstate(e, "hungry")
+      local nearTree = ai.get_worldstate(e, "nearTree")
+      return (hungry == true and nearTree == true) and 0.9 or 0.0
+    end,
+    on_apply = function(e)
+      ai.set_goal(e, { hasFood = true })
+    end
+  },
+
+  -- SURVIVAL: Consume food when has food
+  CONSUME = {
+    band    = "SURVIVAL",
+    persist = 0.1,
+    desire  = function(e, S)
+      local hasFood = ai.get_worldstate(e, "hasFood")
+      return hasFood == true and 0.95 or 0.0
+    end,
+    on_apply = function(e)
+      ai.set_goal(e, { hungry = false })
+    end
+  },
+
   -- IDLE fallback
   WANDER = {
     band    = "IDLE",

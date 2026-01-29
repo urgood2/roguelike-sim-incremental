@@ -73,8 +73,14 @@ local _update_frame = 0
 function sim_scene.update(dt)
     _update_frame = _update_frame + 1
 
+    -- Passive resource generation based on upgrades
     local passive_gold_level = upgrades.get_level("passive_gold")
     resources.update(dt, {gold=passive_gold_level})
+
+    -- Terrain regeneration (trees and rocks regrow over time)
+    local tree_regen_bonus = upgrades.get_level("tree_regrowth") * 0.2  -- 20% per level
+    local rock_regen_bonus = upgrades.get_level("rock_regrowth") * 0.2
+    terrain.update(dt, tree_regen_bonus, rock_regen_bonus)
 
     local tileX, tileY = input_module.handleClick(config)
     if tileX and tileY then
