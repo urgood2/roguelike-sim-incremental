@@ -2,6 +2,8 @@ local resource_panel = {}
 
 local resources = require("idle_game.resources")
 local terrain = require("idle_game.terrain")
+local spawner = require("idle_game.spawner")
+local upgrades = require("idle_game.upgrades")
 
 -- Helper to format rate display
 local function format_rate(rate)
@@ -38,12 +40,16 @@ function resource_panel.draw()
 
         ImGui.Separator()
 
+        -- Population stats
+        local pop = spawner.getForagerCount()
+        local max_pop = 20 + upgrades.get_level("max_creatures") * 2
+        ImGui.Text(string.format("Foragers: %d/%d", pop, max_pop))
+
         -- Terrain stats
         local stats = terrain.getStats()
         if stats then
             ImGui.Text(string.format("Trees: %d", stats.total_trees or 0))
             ImGui.Text(string.format("Rocks: %d", stats.total_rocks or 0))
-            ImGui.Text(string.format("Grass: %d", stats.total_grass or 0))
         end
     end
     ImGui.End()  -- Must always be called after Begin

@@ -112,6 +112,23 @@ ai.goals  = ai.goals  or {
     end
   },
 
+  -- SURVIVAL: Rest when tired
+  REST = {
+    band    = "SURVIVAL",
+    persist = 0.15,
+    desire  = function(e, S)
+      local tired = ai.get_worldstate(e, "tired")
+      local exhausted = ai.get_worldstate(e, "exhausted")
+      -- Higher priority when exhausted
+      if exhausted == true then return 1.0 end
+      if tired == true then return 0.7 end
+      return 0.0
+    end,
+    on_apply = function(e)
+      ai.set_goal(e, { tired = false })
+    end
+  },
+
   -- IDLE fallback
   WANDER = {
     band    = "IDLE",

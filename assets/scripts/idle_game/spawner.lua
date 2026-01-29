@@ -6,6 +6,10 @@ local config = require("idle_game.config")
 local pattern_module = require("external.forma.pattern")
 local cell = require("external.forma.cell")
 
+-- Track living foragers
+spawner._foragers = {}
+spawner._forager_count = 0
+
 --- Spawns forager creatures on grass tiles using Poisson-disc sampling
 --- @param count number Number of creatures to spawn
 --- @return table List of spawned entity IDs
@@ -79,11 +83,75 @@ function spawner.spawnForagers(count)
         )
         
         table.insert(spawned, entity)
+        spawner._foragers[entity] = true
+        spawner._forager_count = spawner._forager_count + 1
         log_debug(string.format("[SPAWNER] Spawned forager #%d at tile (%d, %d) -> pixel (%d, %d)", i, pos.x, pos.y, pos.x * config.TILE_SIZE, pos.y * config.TILE_SIZE))
     end
-    
+
     log_debug(string.format("[SPAWNER] Successfully spawned %d foragers", #spawned))
     return spawned
+end
+
+--- Spawn a single forager at a specific pixel position (for reproduction)
+--- @param x number Pixel X coordinate
+--- @param y number Pixel Y coordinate
+--- @return entity The spawned entity
+function spawner.spawnForagerAt(x, y)
+    local entity = create_ai_entity("forager")
+
+    local transform = component_cache.get(entity, Transform)
+    transform.actualX = x
+    transform.actualY = y
+
+    animation_system.setupAnimatedObjectOnEntity(
+        entity,
+        "d437_011_male.png",
+        true,
+        nil,
+        false
+    )
+
+    animation_system.resizeAnimationObjectsInEntityToFit(
+        entity,
+        config.TILE_SIZE,
+        config.TILE_SIZE
+    )
+
+    spawner._foragers[entity] = true
+    spawner._forager_count = spawner._forager_count + 1
+
+    log_debug(string.format("[SPAWNER] Birth: forager at (%.0f, %.0f), total=%d", x, y, spawner._forager_count))
+    return entity
+end
+
+--- Get current forager count (updates by checking valid entities)
+--- @return number Current number of living foragers
+function spawner.getForagerCount()
+    -- Clean up dead foragers and recount
+    local count = 0
+    for entity, _ in pairs(spawner._foragers) do
+        if registry:valid(entity) then
+            count = count + 1
+        else
+            spawner._foragers[entity] = nil
+        end
+    end
+    spawner._forager_count = count
+    return count
+end
+
+--- Get all living forager entities
+--- @return table List of valid forager entities
+function spawner.getForagers()
+    local result = {}
+    for entity, _ in pairs(spawner._foragers) do
+        if registry:valid(entity) then
+            table.insert(result, entity)
+        else
+            spawner._foragers[entity] = nil
+        end
+    end
+    return result
 end
 
 return spawner

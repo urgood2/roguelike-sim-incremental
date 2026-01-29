@@ -186,15 +186,83 @@ return {
         end
         ai.bb.set(entity, "auto_harvest_timer", harvest_timer)
 
-        -- Hunger system (foragers get hungry over time)
-        local hungry = ai.get_worldstate(entity, "hungry")
-        if not hungry then
-            local hunger_timer = ai.bb.get(entity, "hunger_timer", 0) + dt
-            if hunger_timer > 10.0 then
-                ai.set_worldstate(entity, "hungry", true)
-                ai.bb.set(entity, "hunger_timer", 0)
-            else
-                ai.bb.set(entity, "hunger_timer", hunger_timer)
+        -- ═══════════════════════════════════════════════════════════════
+        -- SURVIVAL SYSTEM: Hunger, Energy, Age, Death, Reproduction
+        -- ═══════════════════════════════════════════════════════════════
+
+        local spawner = require("idle_game.spawner")
+
+        -- Get current survival stats from blackboard
+        local hunger = ai.bb.get(entity, "hunger", 50)
+        local energy = ai.bb.get(entity, "energy", 50)
+        local age = ai.bb.get(entity, "age", 0)
+
+        -- HUNGER DECAY: Loses ~5 hunger per second (starves in ~20 seconds if not eating)
+        hunger = hunger - dt * 5
+        if hunger < 0 then hunger = 0 end
+
+        -- ENERGY DECAY: Loses ~2 energy per second while working (near resources)
+        if nearTree or nearRock then
+            energy = energy - dt * 3  -- Working is tiring
+        else
+            energy = energy - dt * 1  -- Wandering is less tiring
+        end
+        if energy < 0 then energy = 0 end
+
+        -- AGE: Ticks up slowly
+        age = age + dt
+
+        -- Store updated values
+        ai.bb.set(entity, "hunger", hunger)
+        ai.bb.set(entity, "energy", energy)
+        ai.bb.set(entity, "age", age)
+
+        -- UPDATE WORLDSTATE BOOLEANS based on numeric values
+        ai.set_worldstate(entity, "hungry", hunger < 40)
+        ai.set_worldstate(entity, "starving", hunger < 15)
+        ai.set_worldstate(entity, "tired", energy < 30)
+        ai.set_worldstate(entity, "exhausted", energy < 10)
+        ai.set_worldstate(entity, "readyToReproduce", hunger > 80 and energy > 60)
+
+        -- DEATH CHECK: Forager dies if hunger reaches 0
+        if hunger <= 0 then
+            log_debug(string.format("[DEATH] Forager %s starved to death! age=%.0f", tostring(entity), age))
+            popup.at(transform.actualX, transform.actualY - 20, "STARVED!", { color = "red" })
+
+            -- Drop some food for other foragers
+            resources.add("food", 2)
+
+            -- Destroy the entity
+            if registry:valid(entity) then
+                registry:destroy(entity)
+            end
+            return  -- Exit early, entity is dead
+        end
+
+        -- REPRODUCTION CHECK: Well-fed and rested foragers can reproduce
+        local repro_cooldown = ai.bb.get(entity, "repro_cooldown", 0)
+        if repro_cooldown > 0 then
+            ai.bb.set(entity, "repro_cooldown", repro_cooldown - dt)
+        elseif hunger > 80 and energy > 60 then
+            local max_foragers = 20 + upgrades.get_level("max_creatures") * 2
+            local current_count = spawner.getForagerCount and spawner.getForagerCount() or 20
+
+            if current_count < max_foragers then
+                -- Reproduce! Costs hunger and energy
+                hunger = hunger - 30
+                energy = energy - 20
+                ai.bb.set(entity, "hunger", hunger)
+                ai.bb.set(entity, "energy", energy)
+                ai.bb.set(entity, "repro_cooldown", 15.0)  -- Can't reproduce for 15 seconds
+
+                -- Spawn new forager near parent
+                local newX = transform.actualX + (math.random() - 0.5) * 40
+                local newY = transform.actualY + (math.random() - 0.5) * 40
+                spawner.spawnForagerAt(newX, newY)
+
+                popup.at(transform.actualX, transform.actualY - 20, "BIRTH!", { color = "green" })
+                log_debug(string.format("[BIRTH] Forager %s reproduced! population=%d/%d",
+                    tostring(entity), current_count + 1, max_foragers))
             end
         end
     end
