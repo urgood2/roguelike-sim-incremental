@@ -6,8 +6,10 @@ local resources = require("idle_game.resources")
 function upgrade_panel.draw()
     if not ImGui then return end
 
-    ImGui.SetNextWindowPos(350, 10, ImGuiCond.Always)
-    ImGui.SetNextWindowSize(240, 500, ImGuiCond.Always)
+    -- Use FirstUseEver to allow window dragging
+    local cond = ImGuiCond.FirstUseEver or 2
+    ImGui.SetNextWindowPos(350, 10, cond)
+    ImGui.SetNextWindowSize(240, 500, cond)
 
     if ImGui.Begin("Upgrades") then
         if ImGui.BeginChild("upgrade_list", 0, 0, true) then

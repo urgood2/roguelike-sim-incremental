@@ -43,17 +43,18 @@ function debug_panel.drawSummary()
         end
     end
 
-    -- Get flag values safely
+    -- Get flag values safely - use FirstUseEver to allow dragging
     local flags = 0
     if ImGuiWindowFlags then
-        flags = (ImGuiWindowFlags.NoResize or 0) + (ImGuiWindowFlags.NoMove or 0) + (ImGuiWindowFlags.NoCollapse or 0)
+        flags = (ImGuiWindowFlags.NoResize or 0) + (ImGuiWindowFlags.NoCollapse or 0)
+        -- Note: Removed NoMove to allow dragging
     end
-    local cond = 1  -- ImGuiCond_Always = 1
-    if ImGuiCond and ImGuiCond.Always then
-        cond = ImGuiCond.Always
+    local cond = 2  -- ImGuiCond_FirstUseEver = 2 (allows user to move after first frame)
+    if ImGuiCond and ImGuiCond.FirstUseEver then
+        cond = ImGuiCond.FirstUseEver
     end
 
-    -- Draw compact summary panel in top-left
+    -- Draw compact summary panel in top-left (position only set on first use)
     ImGui.SetNextWindowPos(10, 10, cond)
     ImGui.SetNextWindowSize(180, 0, cond)
     ImGui.SetNextWindowBgAlpha(0.8)
@@ -90,10 +91,10 @@ function debug_panel.drawDetails()
     if not ImGui then return end
     if not selection.selected_entity then return end
 
-    local cond = 1  -- ImGuiCond_Always
-    if ImGuiCond and ImGuiCond.Always then cond = ImGuiCond.Always end
+    local cond = 2  -- ImGuiCond_FirstUseEver (allows user to move window)
+    if ImGuiCond and ImGuiCond.FirstUseEver then cond = ImGuiCond.FirstUseEver end
     local flags = 0
-    if ImGuiWindowFlags and ImGuiWindowFlags.NoResize then flags = ImGuiWindowFlags.NoResize end
+    -- No NoMove flag so window can be dragged
 
     ImGui.SetNextWindowPos(220, 10, cond)
     ImGui.SetNextWindowSize(debug_panel.panel_width, debug_panel.panel_height, cond)

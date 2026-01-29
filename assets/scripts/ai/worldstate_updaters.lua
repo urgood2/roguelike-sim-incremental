@@ -3,6 +3,7 @@
 return {
     -- Reset wander state so foragers continuously wander
     wander_reset = function(entity, dt)
+        if not registry:valid(entity) then return end
         -- Only reset if wander is currently true (just completed wandering)
         if ai.get_worldstate(entity, "wander") == true then
             ai.set_worldstate(entity, "wander", false)
@@ -10,10 +11,12 @@ return {
     end,
 
     hunger_check = function(entity, dt)
+        if not registry:valid(entity) then return end
         -- TODO: Implement hunger check logic
-        local bb = ai.get_blackboard(entity)
-        if (bb:contains("hunger")) == false then
-            log_debug("Hunger key not found in blackboard for entity: " .. tostring(entity))
+        local ok, bb = pcall(ai.get_blackboard, entity)
+        if not ok or not bb then return end
+        local has_hunger, contains = pcall(function() return bb:contains("hunger") end)
+        if not has_hunger or not contains then
             return
         end
         local hunger = bb:get_float("hunger")
@@ -43,6 +46,7 @@ return {
     end,
 
     enemy_sight = function(entity, dt)
+        if not registry:valid(entity) then return end
         -- TODO: Implement enemy sight check logic
         -- local visible = check_if_enemy_visible(entity)
         -- ai.set_worldstate(entity, "enemyvisible", visible)
@@ -51,6 +55,7 @@ return {
     end,
     
     can_heal_other = function(entity, dt)
+        if not registry:valid(entity) then return end
         -- when's the last time the healer healed?
         if (blackboardContains(entity, "last_heal_time") == false) then
             return
@@ -68,6 +73,7 @@ return {
     end,
     
     can_dig_for_gold = function(entity, dt)
+        if not registry:valid(entity) then return end
         -- when's the last time the gold digger dug for gold?
         if (blackboardContains(entity, "last_dig_time") == false) then
             return
@@ -85,6 +91,9 @@ return {
     end,
     
     avilable_duplicator = function(entity, dt)
+        -- Early exit if entity was destroyed (e.g., by forager_sensing death)
+        if not registry:valid(entity) then return end
+
         -- Check if the duplicator table is not empty, and there is one with taken flag not set
         local duplicatorAvailable = false
         if #globals.structures.duplicators > 0 then
@@ -120,6 +129,7 @@ return {
     end,
 
     perception_tick = function(entity, dt)
+        if not registry:valid(entity) then return end
         if ai.perception and ai.perception.tick then
             ai.perception.tick(entity, dt)
         end
@@ -134,6 +144,17 @@ return {
         local tileY = math.floor(transform.actualY / TILE_SIZE)
 
         local terrain = require("idle_game.terrain")
+
+        -- Debug: Log every 5 seconds to confirm updater is running
+        local debug_timer = ai.bb.get(entity, "sensing_debug_timer", 0) + dt
+        if debug_timer > 5.0 then
+            local hunger = ai.bb.get(entity, "hunger", -1)
+            local energy = ai.bb.get(entity, "energy", -1)
+            log_debug(string.format("[SENSING] entity=%s hunger=%.0f energy=%.0f tile=(%d,%d)",
+                tostring(entity), hunger, energy, tileX, tileY))
+            debug_timer = 0
+        end
+        ai.bb.set(entity, "sensing_debug_timer", debug_timer)
 
         -- Sense nearby trees and rocks for harvesting
         local nearTree = terrain.isNearTileType(tileX, tileY, terrain.TREE, 2)
@@ -232,11 +253,13 @@ return {
             -- Drop some food for other foragers
             resources.add("food", 2)
 
-            -- Destroy the entity
-            if registry:valid(entity) then
-                registry:destroy(entity)
-            end
-            return  -- Exit early, entity is dead
+            -- Spawn corpse at death location (gray on pink background)
+            spawner.spawnCorpseAt(transform.actualX, transform.actualY)
+
+            -- Queue for deferred destruction (safe during AI updates)
+            -- Don't destroy immediately to avoid entt assertion failures
+            spawner.queueDestroy(entity)
+            return  -- Exit early, entity is marked for death
         end
 
         -- REPRODUCTION CHECK: Well-fed and rested foragers can reproduce

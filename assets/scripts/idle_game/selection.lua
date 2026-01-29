@@ -141,7 +141,7 @@ function Selection._addOutline(entity)
     end
     local uniforms = registry:get(entity, shaders.ShaderUniformComponent)
     
-    uniforms:set("efficient_pixel_outline", "outlineColor", Color(255, 255, 0, 255))
+    uniforms:set("efficient_pixel_outline", "outlineColor", util.getColor("YELLOW"))
     uniforms:set("efficient_pixel_outline", "thickness", 2.0)
     uniforms:set("efficient_pixel_outline", "outlineType", 2)
 end

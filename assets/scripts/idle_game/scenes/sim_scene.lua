@@ -82,6 +82,9 @@ function sim_scene.update(dt)
     local rock_regen_bonus = upgrades.get_level("rock_regrowth") * 0.2
     terrain.update(dt, tree_regen_bonus, rock_regen_bonus)
 
+    -- Process deferred entity destructions (after AI tick completes)
+    spawner.processPendingDestructions()
+
     local tileX, tileY = input_module.handleClick(config)
     if tileX and tileY then
         log_debug(string.format("[sim_scene] Click at tile (%d, %d)", tileX, tileY))
@@ -125,7 +128,10 @@ function sim_scene.draw()
     if terrainGrid then
         terrain_renderer.draw(terrainGrid)
     end
-    
+
+    -- Draw corpses (gray on pink, above terrain)
+    spawner.drawCorpses()
+
     resource_panel.draw()
     debug_panel.draw()
     upgrade_panel.draw()

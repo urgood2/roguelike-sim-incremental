@@ -10,6 +10,12 @@ local cell = require("external.forma.cell")
 spawner._foragers = {}
 spawner._forager_count = 0
 
+-- Track corpses for rendering
+spawner._corpses = {}
+
+-- Deferred destruction queue (entities destroyed during AI updates)
+spawner._pending_destroy = {}
+
 --- Spawns forager creatures on grass tiles using Poisson-disc sampling
 --- @param count number Number of creatures to spawn
 --- @return table List of spawned entity IDs
@@ -152,6 +158,79 @@ function spawner.getForagers()
         end
     end
     return result
+end
+
+--- Spawn a corpse at a position (gray on pink background)
+--- @param x number Pixel X coordinate
+--- @param y number Pixel Y coordinate
+function spawner.spawnCorpseAt(x, y)
+    table.insert(spawner._corpses, { x = x, y = y })
+    log_debug(string.format("[SPAWNER] Corpse spawned at (%.0f, %.0f), total corpses=%d", x, y, #spawner._corpses))
+end
+
+--- Draw all corpses (called each frame from terrain renderer or scene)
+function spawner.drawCorpses()
+    if not command_buffer or not layers then return end
+
+    local TILE_SIZE = config.TILE_SIZE
+    local pinkColor = util.getColor("HOTPINK") or util.getColor("PINK")
+    local grayColor = util.getColor("DARKGRAY") or util.getColor("GRAY")
+
+    for _, corpse in ipairs(spawner._corpses) do
+        -- Draw pink background square
+        command_buffer.queueDrawSpriteTopLeft(
+            layers.sprites,
+            function(c)
+                c.spriteName = config.SPRITE_GRASS  -- Use grass tile as base
+                c.x = corpse.x
+                c.y = corpse.y
+                c.dstW = TILE_SIZE
+                c.dstH = TILE_SIZE
+                c.tint = pinkColor
+            end,
+            1,  -- z-order above terrain
+            layer.DrawCommandSpace.World
+        )
+
+        -- Draw gray forager sprite on top
+        command_buffer.queueDrawSpriteTopLeft(
+            layers.sprites,
+            function(c)
+                c.spriteName = "d437_011_male.png"  -- Forager sprite
+                c.x = corpse.x
+                c.y = corpse.y
+                c.dstW = TILE_SIZE
+                c.dstH = TILE_SIZE
+                c.tint = grayColor
+            end,
+            2,  -- z-order above pink background
+            layer.DrawCommandSpace.World
+        )
+    end
+end
+
+--- Get corpse count
+--- @return number Number of corpses
+function spawner.getCorpseCount()
+    return #spawner._corpses
+end
+
+--- Queue an entity for deferred destruction (safe to call during AI updates)
+--- @param entity number Entity to destroy
+function spawner.queueDestroy(entity)
+    table.insert(spawner._pending_destroy, entity)
+end
+
+--- Process pending destructions (call from scene update, after AI tick completes)
+function spawner.processPendingDestructions()
+    for _, entity in ipairs(spawner._pending_destroy) do
+        if registry:valid(entity) then
+            registry:destroy(entity)
+        end
+        -- Also remove from forager tracking
+        spawner._foragers[entity] = nil
+    end
+    spawner._pending_destroy = {}
 end
 
 return spawner

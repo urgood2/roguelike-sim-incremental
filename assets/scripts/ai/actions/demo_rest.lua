@@ -30,31 +30,14 @@ return {
         local elapsed = os.clock() - startTime
         local restDuration = 2.5
 
-        -- Resting animation: shrink down then back up
-        local progress = elapsed / restDuration
-        local restScale
-        if progress < 0.5 then
-            -- Shrinking down
-            restScale = 1.0 - (progress * 2) * 0.3
-        else
-            -- Growing back up
-            restScale = 0.7 + ((progress - 0.5) * 2) * 0.3
-        end
-
-        transform.scaleX = restScale
-        transform.scaleY = restScale
-
-        -- Subtle bob
+        -- Resting animation: subtle vertical bob (Transform doesn't expose scaleX/Y)
         transform.visualY = transform.actualY + math.sin(elapsed * 4) * 3
 
         if elapsed >= restDuration then
-            transform.scaleX = 1.0
-            transform.scaleY = 1.0
             transform.visualY = transform.actualY
             return ActionResult.SUCCESS
         end
 
-        coroutine.yield()
         return ActionResult.RUNNING
     end,
 
@@ -62,8 +45,6 @@ return {
         log_debug("[DEMO] Entity", e, "finished resting, now rested")
         local transform = component_cache.get(e, Transform)
         if transform then
-            transform.scaleX = 1.0
-            transform.scaleY = 1.0
             transform.visualY = transform.actualY
         end
     end,
@@ -72,8 +53,7 @@ return {
         log_debug("[DEMO] Rest aborted for entity", e, "reason:", tostring(reason))
         local transform = component_cache.get(e, Transform)
         if transform then
-            transform.scaleX = 1.0
-            transform.scaleY = 1.0
+            transform.visualY = transform.actualY
         end
     end
 }

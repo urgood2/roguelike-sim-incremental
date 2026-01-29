@@ -19,8 +19,10 @@ end
 function resource_panel.draw()
     if not ImGui then return end
 
-    ImGui.SetNextWindowPos(10, 10, ImGuiCond.Always)
-    ImGui.SetNextWindowSize(180, 180, ImGuiCond.Always)
+    -- Use FirstUseEver to allow window dragging
+    local cond = ImGuiCond.FirstUseEver or 2
+    ImGui.SetNextWindowPos(10, 10, cond)
+    ImGui.SetNextWindowSize(180, 180, cond)
 
     if ImGui.Begin("Resources") then
         local food = resources.get("food")
@@ -50,6 +52,12 @@ function resource_panel.draw()
         if stats then
             ImGui.Text(string.format("Trees: %d", stats.total_trees or 0))
             ImGui.Text(string.format("Rocks: %d", stats.total_rocks or 0))
+        end
+
+        -- Corpse count (deaths)
+        local corpses = spawner.getCorpseCount and spawner.getCorpseCount() or 0
+        if corpses > 0 then
+            ImGui.Text(string.format("Deaths: %d", corpses))
         end
     end
     ImGui.End()  -- Must always be called after Begin
