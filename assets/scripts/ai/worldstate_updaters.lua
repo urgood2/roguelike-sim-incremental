@@ -141,18 +141,50 @@ return {
         ai.set_worldstate(entity, "nearTree", nearTree)
         ai.set_worldstate(entity, "nearRock", nearRock)
 
-        -- Debug logging (every 3 seconds per entity via frame counting)
-        local sense_frame = ai.bb.get(entity, "sense_log_frame", 0) + 1
-        ai.bb.set(entity, "sense_log_frame", sense_frame)
-        if sense_frame % 180 == 1 and (nearTree or nearRock) then
-            log_debug(string.format("[forager_sensing] entity=%s tile=(%d,%d) nearTree=%s nearRock=%s",
-                tostring(entity), tileX, tileY, tostring(nearTree), tostring(nearRock)))
-        end
-
         -- Reset didWork flag so foragers can work again
         if ai.get_worldstate(entity, "didWork") == true then
             ai.set_worldstate(entity, "didWork", false)
         end
+
+        -- PASSIVE INCOME: Foragers automatically gather resources while near them
+        -- This runs every frame and provides steady income regardless of GOAP goal selection
+        local resources = require("idle_game.resources")
+        local upgrades = require("idle_game.upgrades")
+        local popup = require("core.popup")
+
+        local harvest_timer = ai.bb.get(entity, "auto_harvest_timer", 0) + dt
+        local harvest_interval = 3.0  -- Harvest every 3 seconds when near resources
+
+        if harvest_timer >= harvest_interval then
+            harvest_timer = 0
+            local level = upgrades.get_level("forage_amount")
+            local yield = 1 + math.floor(level * 0.3)
+
+            if nearTree then
+                -- 30% chance to harvest wood when near tree
+                if math.random() < 0.3 then
+                    resources.add("wood", yield)
+                    popup.at(transform.actualX, transform.actualY - 10, "+" .. yield, { color = "gold" })
+                    -- Small chance to consume the tree
+                    if math.random() < 0.1 then
+                        terrain.set(tileX, tileY, terrain.GRASS)
+                    end
+                end
+            end
+
+            if nearRock then
+                -- 20% chance to harvest stone when near rock
+                if math.random() < 0.2 then
+                    resources.add("stone", yield)
+                    popup.at(transform.actualX, transform.actualY - 10, "+" .. yield, { color = "white" })
+                    -- Small chance to consume the rock
+                    if math.random() < 0.1 then
+                        terrain.set(tileX, tileY, terrain.GRASS)
+                    end
+                end
+            end
+        end
+        ai.bb.set(entity, "auto_harvest_timer", harvest_timer)
 
         -- Hunger system (foragers get hungry over time)
         local hungry = ai.get_worldstate(entity, "hungry")
