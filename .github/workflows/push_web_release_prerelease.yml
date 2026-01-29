@@ -82,6 +82,10 @@ jobs:
             -DPLATFORM=Web \
             -DCMAKE_BUILD_TYPE=Release
 
+      - name: Copy assets to build directory
+        run: |
+          python3 scripts/copy_assets.py assets build-web/assets --strip-lua
+
       - name: Build Web
         run: emmake make -C build-web -j2
 
