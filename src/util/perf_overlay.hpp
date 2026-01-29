@@ -25,6 +25,7 @@
 #include <array>
 #include <string>
 #include <cstdint>
+#include "entt/entt.hpp"
 #include "sol/sol.hpp"
 
 namespace perf_overlay {
