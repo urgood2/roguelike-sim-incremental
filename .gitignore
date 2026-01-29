@@ -88,6 +88,7 @@ build-debug/
 build-debug-ninja/
 .ccache/
 build-asan/
+build-release/
 /docs/doxygen/
 /web_build
 /desktop_build

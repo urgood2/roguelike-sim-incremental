@@ -1,7 +1,0 @@
-{
-	"InstallScripts" : 
-	[
-		"/Users/joshuashin/conductor/workspaces/TheGameJamTemplate/boston/build-release/_deps/json-subbuild/cmake_install.cmake"
-	],
-	"Parallel" : false
-}

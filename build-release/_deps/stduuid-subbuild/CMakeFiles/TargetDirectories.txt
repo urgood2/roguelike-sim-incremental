@@ -1,3 +1,0 @@
-/Users/joshuashin/conductor/workspaces/TheGameJamTemplate/boston/build-release/_deps/stduuid-subbuild/CMakeFiles/stduuid-populate.dir
-/Users/joshuashin/conductor/workspaces/TheGameJamTemplate/boston/build-release/_deps/stduuid-subbuild/CMakeFiles/edit_cache.dir
-/Users/joshuashin/conductor/workspaces/TheGameJamTemplate/boston/build-release/_deps/stduuid-subbuild/CMakeFiles/rebuild_cache.dir

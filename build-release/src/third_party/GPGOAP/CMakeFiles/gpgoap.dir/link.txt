@@ -1,2 +1,0 @@
-/usr/bin/ar qc ../../../lib/libgpgoap.a CMakeFiles/gpgoap.dir/astar.c.o CMakeFiles/gpgoap.dir/goap.c.o
-/usr/bin/ranlib ../../../lib/libgpgoap.a

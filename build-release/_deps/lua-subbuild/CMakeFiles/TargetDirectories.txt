@@ -1,3 +1,0 @@
-/Users/joshuashin/conductor/workspaces/TheGameJamTemplate/boston/build-release/_deps/lua-subbuild/CMakeFiles/lua-populate.dir
-/Users/joshuashin/conductor/workspaces/TheGameJamTemplate/boston/build-release/_deps/lua-subbuild/CMakeFiles/edit_cache.dir
-/Users/joshuashin/conductor/workspaces/TheGameJamTemplate/boston/build-release/_deps/lua-subbuild/CMakeFiles/rebuild_cache.dir
