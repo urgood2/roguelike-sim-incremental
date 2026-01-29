@@ -93,9 +93,10 @@ jobs:
       - name: Package Web build
         run: |
           mkdir -p dist/web
-          cp build-web/index.html dist/web/
+          cp build-web/raylib-cpp-cmake-template.html dist/web/index.html
           cp build-web/*.wasm dist/web/
           cp build-web/*.js dist/web/
+          cp build-web/*.data dist/web/ || true
           cp -R assets dist/web/
           cd dist && zip -r web-build.zip web/
 
