@@ -83,7 +83,7 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release
 
       - name: Build Web
-        run: emmake make -C build-web -j
+        run: emmake make -C build-web -j2
 
       - name: Package Web build
         run: |
