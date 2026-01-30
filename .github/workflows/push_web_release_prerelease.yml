@@ -55,6 +55,7 @@ jobs:
 
   # ───────────────────────────────
   #  Web build (ALWAYS RUNS)
+  #  PARITY: Matches `just deploy-web` exactly
   # ───────────────────────────────
   build-web:
     name: Build Web (Emscripten WASM)
@@ -63,6 +64,11 @@ jobs:
       contains(github.event.head_commit.message, '[build]') ||
       contains(github.event.head_commit.message, '[web]') ||
       contains(github.event.head_commit.message, '#build')
+
+    env:
+      # Match Justfile project_name and web_build_dir
+      PROJECT_NAME: raylib-cpp-cmake-template
+      WEB_BUILD_DIR: build-web
 
     steps:
       - uses: actions/checkout@v3
@@ -74,31 +80,84 @@ jobs:
           actions-cache-folder: "emsdk-cache"
 
       - name: Clean FetchContent deps
-        run: rm -rf build-web/_deps
+        run: rm -rf ${{ env.WEB_BUILD_DIR }}/_deps
 
+      # PARITY: copy-web-assets (Justfile:222-238)
+      # Must run BEFORE cmake configure so assets are available
+      - name: Copy assets to build directory (with Lua stripping)
+        run: |
+          python3 scripts/copy_assets.py assets ${{ env.WEB_BUILD_DIR }}/assets --strip-lua
+
+      # PARITY: build-web configure step (Justfile:241-272)
+      # Match exact linker flags from Justfile:261
       - name: Configure CMake (Web)
         run: |
-          emcmake cmake -S . -B build-web \
+          LINK_FLAGS="-sUSE_GLFW=3 -sFULL_ES2=1 -sFULL_ES3=1 -sMIN_WEBGL_VERSION=2 -sMAX_WEBGL_VERSION=2 -Oz -sALLOW_MEMORY_GROWTH=1 -gsource-map -sASSERTIONS=1 -sDISABLE_EXCEPTION_CATCHING=0 -DNDEBUG -s WASM=1 -s SIDE_MODULE=0 -s EXIT_RUNTIME=1 -s ERROR_ON_UNDEFINED_SYMBOLS=0 -sEXPORTED_RUNTIME_METHODS=HEAPF32,HEAPF64,HEAP8,HEAP16,HEAP32,HEAPU8,HEAPU16,HEAPU32,stringToUTF8OnStack,UTF8ToString,stringToUTF8,lengthBytesUTF8"
+          
+          emcmake cmake -S . -B ${{ env.WEB_BUILD_DIR }} \
             -DPLATFORM=Web \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DENABLE_LTO=OFF
+            -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+            -DCMAKE_EXE_LINKER_FLAGS="$LINK_FLAGS" \
+            -DCMAKE_EXECUTABLE_SUFFIX=.html \
+            -DCCACHE_PROGRAM= \
+            -DCMAKE_C_COMPILER_LAUNCHER= \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=
 
-      - name: Copy assets to build directory
-        run: |
-          python3 scripts/copy_assets.py assets build-web/assets --strip-lua
-
+      # PARITY: build-web build step (Justfile:274-275)
       - name: Build Web
-        run: emmake make -C build-web -j2
+        run: cmake --build ${{ env.WEB_BUILD_DIR }}
 
+      # PARITY: rename-to-index (Justfile:280-285)
+      - name: Rename to index.html
+        run: |
+          cp ${{ env.WEB_BUILD_DIR }}/${{ env.PROJECT_NAME }}.html ${{ env.WEB_BUILD_DIR }}/index.html
+
+      # PARITY: inject-web-snippet (Justfile:288-299)
+      # Injects pako gzip decompression into index.html
+      - name: Inject gzip decompression snippet
+        run: |
+          cmake \
+            -DHTML_PATH="${{ env.WEB_BUILD_DIR }}/index.html" \
+            -DSNIPPET_PATH="cmake/inject_snippet.html" \
+            -P cmake/inject_snippet.cmake
+
+      # PARITY: gzip-web-assets (Justfile:302-326)
+      - name: Gzip WASM and DATA files
+        run: |
+          WASM_FILE="${{ env.WEB_BUILD_DIR }}/${{ env.PROJECT_NAME }}.wasm"
+          DATA_FILE="${{ env.WEB_BUILD_DIR }}/${{ env.PROJECT_NAME }}.data"
+          
+          # Keep originals as backup
+          cp "$WASM_FILE" "$WASM_FILE.orig"
+          cp "$DATA_FILE" "$DATA_FILE.orig"
+          
+          # Gzip with -k (keep original) and -f (force)
+          gzip -kf "$WASM_FILE"
+          gzip -kf "$DATA_FILE"
+          
+          # Show size reduction
+          echo "=== Compression Results ==="
+          ls -lh "$WASM_FILE.orig" "$WASM_FILE.gz"
+          ls -lh "$DATA_FILE.orig" "$DATA_FILE.gz"
+
+      # PARITY: zip-web-build (Justfile:329-347)
+      # Package with gzipped files (not originals)
       - name: Package Web build
         run: |
-          mkdir -p dist/web
-          cp build-web/raylib-cpp-cmake-template.html dist/web/index.html
-          cp build-web/*.wasm dist/web/
-          cp build-web/*.js dist/web/
-          cp build-web/*.data dist/web/ || true
-          cp -R assets dist/web/
-          cd dist && zip -r web-build.zip web/
+          mkdir -p dist
+          cd ${{ env.WEB_BUILD_DIR }}
+          
+          # Create zip with gzipped assets (matches Justfile exactly)
+          zip -r ../dist/web-build.zip \
+            index.html \
+            ${{ env.PROJECT_NAME }}.wasm.gz \
+            ${{ env.PROJECT_NAME }}.data.gz \
+            ${{ env.PROJECT_NAME }}.js \
+            assets
+          
+          cd ..
+          echo "=== Distribution Package ==="
+          ls -lh dist/web-build.zip
 
       - name: Upload web build (v4)
         uses: actions/upload-artifact@v4
