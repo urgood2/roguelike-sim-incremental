@@ -89,19 +89,18 @@ jobs:
           python3 scripts/copy_assets.py assets ${{ env.WEB_BUILD_DIR }}/assets --strip-lua
 
       # PARITY: build-web configure step (Justfile:241-272)
-      # Match exact linker flags from Justfile:261
+      # Match Justfile linker flags but use Release build for CI (faster linking)
+      # NOTE: Removed -gsource-map for CI (causes very slow linking)
       - name: Configure CMake (Web)
         run: |
-          LINK_FLAGS="-sUSE_GLFW=3 -sFULL_ES2=1 -sFULL_ES3=1 -sMIN_WEBGL_VERSION=2 -sMAX_WEBGL_VERSION=2 -Oz -sALLOW_MEMORY_GROWTH=1 -gsource-map -sASSERTIONS=1 -sDISABLE_EXCEPTION_CATCHING=0 -DNDEBUG -s WASM=1 -s SIDE_MODULE=0 -s EXIT_RUNTIME=1 -s ERROR_ON_UNDEFINED_SYMBOLS=0 -sEXPORTED_RUNTIME_METHODS=HEAPF32,HEAPF64,HEAP8,HEAP16,HEAP32,HEAPU8,HEAPU16,HEAPU32,stringToUTF8OnStack,UTF8ToString,stringToUTF8,lengthBytesUTF8"
+          LINK_FLAGS="-sUSE_GLFW=3 -sFULL_ES2=1 -sFULL_ES3=1 -sMIN_WEBGL_VERSION=2 -sMAX_WEBGL_VERSION=2 -Oz -sALLOW_MEMORY_GROWTH=1 -sASSERTIONS=1 -sDISABLE_EXCEPTION_CATCHING=0 -DNDEBUG -sWASM=1 -sSIDE_MODULE=0 -sEXIT_RUNTIME=1 -sERROR_ON_UNDEFINED_SYMBOLS=0 -sEXPORTED_RUNTIME_METHODS=HEAPF32,HEAPF64,HEAP8,HEAP16,HEAP32,HEAPU8,HEAPU16,HEAPU32,stringToUTF8OnStack,UTF8ToString,stringToUTF8,lengthBytesUTF8"
           
           emcmake cmake -S . -B ${{ env.WEB_BUILD_DIR }} \
             -DPLATFORM=Web \
-            -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+            -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_EXE_LINKER_FLAGS="$LINK_FLAGS" \
             -DCMAKE_EXECUTABLE_SUFFIX=.html \
-            -DCCACHE_PROGRAM= \
-            -DCMAKE_C_COMPILER_LAUNCHER= \
-            -DCMAKE_CXX_COMPILER_LAUNCHER=
+            -DENABLE_LTO=OFF
 
       # PARITY: build-web build step (Justfile:274-275)
       - name: Build Web
