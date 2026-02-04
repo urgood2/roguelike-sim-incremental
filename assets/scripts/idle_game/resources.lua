@@ -43,9 +43,20 @@ function resources.add(resource_type, amount)
         error("Unknown resource type: " .. tostring(resource_type))
     end
 
-    local new_value = _resources[resource_type] + amount
+    local previous_value = _resources[resource_type]
+    local new_value = previous_value + amount
     new_value = math.max(0, math.min(new_value, RESOURCE_CAP))
     _resources[resource_type] = new_value
+
+    local delta = new_value - previous_value
+
+    if new_value ~= previous_value then
+        local signal = require("external.hump.signal")
+        signal.emit("idle.resource_total", resource_type, new_value)
+        if delta > 0 then
+            signal.emit("idle.resource_added", resource_type, new_value, delta)
+        end
+    end
 
     -- Track positive income for rate display
     if amount > 0 then
@@ -99,6 +110,41 @@ end
 -- Get all income rates
 function resources.get_all_rates()
     return _income_tracker.rates
+end
+
+-- Check if player can afford a set of resource costs
+function resources.can_afford(costs)
+    if not costs then return true end
+
+    for resource_type, cost in pairs(costs) do
+        if not _resources[resource_type] then
+            error("Unknown resource type in cost: " .. tostring(resource_type))
+        end
+        if _resources[resource_type] < cost then
+            return false
+        end
+    end
+
+    return true
+end
+
+-- Atomic spend helper: either spend all resources or none
+-- costs: table like {food=10, wood=5, stone=3}
+-- Returns true if successful, false if insufficient resources
+function resources.try_spend(costs)
+    if not costs then return true end
+
+    -- First pass: check affordability
+    if not resources.can_afford(costs) then
+        return false
+    end
+
+    -- Second pass: spend all resources (we know they're affordable)
+    for resource_type, cost in pairs(costs) do
+        resources.add(resource_type, -cost)
+    end
+
+    return true
 end
 
 return resources

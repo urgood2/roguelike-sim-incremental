@@ -41,6 +41,15 @@ function sim_input.handleClick(config)
     local mouseX = mouse.x
     local mouseY = mouse.y
 
+    -- Margin input gating: block input when mouse is outside screen bounds
+    local SCREEN_W = globals and globals.screenWidth and globals.screenWidth() or 1200  -- Fallback
+    local SCREEN_H = globals and globals.screenHeight and globals.screenHeight() or 800  -- Fallback
+    if mouseX >= SCREEN_W or mouseY >= SCREEN_H then
+        log_debug(string.format("[input] Blocked: mouse (%.0f,%.0f) outside screen bounds (%d,%d)",
+                  mouseX, mouseY, SCREEN_W, SCREEN_H))
+        return nil
+    end
+
     -- Convert screen coords to world coords using camera
     local worldX, worldY = mouseX, mouseY
     if camera and camera.Exists and camera.Exists("world_camera") then

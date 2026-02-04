@@ -28,12 +28,18 @@ function upgrade_panel.draw()
                 end
                 ImGui.Text("Cost: " .. table.concat(cost_parts, ", "))
 
-                if can_afford then
-                    if ImGui.Button("Buy##" .. id) then
+                -- Implement buy button states: [BUY], [MAX], or [—]
+                if level >= upgrade.max_level then
+                    -- Show [MAX] for maxed upgrades
+                    ImGui.Text("[MAX]")
+                elseif can_afford then
+                    -- Show [BUY] button for affordable upgrades
+                    if ImGui.Button("[BUY]##" .. id) then
                         upgrades.purchase(id, resources)
                     end
                 else
-                    ImGui.Text("[Cannot afford]")
+                    -- Show [—] for unaffordable upgrades (insufficient resources)
+                    ImGui.Text("[—]")
                 end
 
                 ImGui.TextWrapped(upgrade.description)

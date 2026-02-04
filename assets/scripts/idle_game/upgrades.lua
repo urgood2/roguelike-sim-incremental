@@ -1,5 +1,7 @@
 local upgrades = {}
 
+local signals = require("idle_game.signals")
+
 -- Upgrade definitions (12 total upgrades covering diverse mechanics)
 local UPGRADES = {
     click_wood = {
@@ -152,7 +154,15 @@ function upgrades.purchase(upgrade_id, resources_module)
         resources_module.add(resource, -amount)
     end
     
-    upgrades._levels[upgrade_id] = upgrades.get_level(upgrade_id) + 1
+    local new_level = upgrades.get_level(upgrade_id) + 1
+    upgrades._levels[upgrade_id] = new_level
+
+    -- Emit upgrade purchased signal
+    signals.emit("idle.upgrade_purchased", {
+        upgrade_id = upgrade_id,
+        new_level = new_level
+    })
+
     return true
 end
 

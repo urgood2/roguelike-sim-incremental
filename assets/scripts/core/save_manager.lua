@@ -36,6 +36,12 @@ function SaveManager.register(key, collector)
         error("SaveManager.register: collector must have 'collect' and 'distribute' functions")
     end
     SaveManager.collectors[key] = collector
+    if SaveManager.cache and SaveManager.cache[key] ~= nil then
+        local success, err = pcall(collector.distribute, SaveManager.cache[key])
+        if not success then
+            log_warn(string.format(" late distributor '%s' failed: %s", key, tostring(err)))
+        end
+    end
     log_debug(string.format("registered collector '%s'", key))
 end
 
