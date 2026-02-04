@@ -51,7 +51,13 @@ return {
                 if terrain.get(tileX, tileY) == terrain.ROCK then
                     -- Mine this rock!
                     local level = upgrades.get_level("forage_amount")
-                    local yield = 1 + math.floor(level * 0.5)  -- 1 base + 0.5 per upgrade level
+                    local base_yield = 1 + math.floor(level * 0.5)  -- 1 base + 0.5 per upgrade level
+
+                    -- Apply miner harvest multiplier (1.5x)
+                    local spawner = require("idle_game.spawner")
+                    local is_miner = spawner._miners and spawner._miners[e]
+                    local yield = is_miner and math.floor(base_yield * 1.5) or base_yield
+
                     resources.add("stone", yield)
                     terrain.set(tileX, tileY, terrain.GRASS)
 

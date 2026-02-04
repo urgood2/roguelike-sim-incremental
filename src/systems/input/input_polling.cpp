@@ -173,22 +173,31 @@ void poll_all_inputs(entt::registry& reg, InputState& state, float dt, EngineCon
     if (mouseDetectDownFirstFrameLeft) {
         hid::reconfigure_device_info(reg, state, InputDeviceInputCategory::MOUSE);
         Vector2 mousePos = globals::getScaledMousePositionCached();
-        cursor_events::enqueue_left_press(state, mousePos.x, mousePos.y);
-        bus.publish(events::MouseClicked{mousePos, MOUSE_LEFT_BUTTON});
+        // Margin gating: Block input when outside screen bounds
+        if (mousePos.x < globals::VIRTUAL_WIDTH && mousePos.y < globals::VIRTUAL_HEIGHT) {
+            cursor_events::enqueue_left_press(state, mousePos.x, mousePos.y);
+            bus.publish(events::MouseClicked{mousePos, MOUSE_LEFT_BUTTON});
+        }
     }
 
     if (mouseDetectDownFirstFrameRight) {
         hid::reconfigure_device_info(reg, state, InputDeviceInputCategory::MOUSE);
         Vector2 mousePos = globals::getScaledMousePositionCached();
-        cursor_events::enqueue_right_press(state, mousePos.x, mousePos.y);
-        bus.publish(events::MouseClicked{mousePos, MOUSE_RIGHT_BUTTON});
+        // Margin gating: Block input when outside screen bounds
+        if (mousePos.x < globals::VIRTUAL_WIDTH && mousePos.y < globals::VIRTUAL_HEIGHT) {
+            cursor_events::enqueue_right_press(state, mousePos.x, mousePos.y);
+            bus.publish(events::MouseClicked{mousePos, MOUSE_RIGHT_BUTTON});
+        }
     }
 
     if (!effectiveLeftDown && s_mouseLeftDownLastFrame) {
         // Left button release (or switched to emulated right-click)
         hid::reconfigure_device_info(reg, state, InputDeviceInputCategory::MOUSE);
         Vector2 mousePos = globals::getScaledMousePositionCached();
-        cursor_events::process_left_release(reg, state, mousePos.x, mousePos.y, ctx);
+        // Margin gating: Block input when outside screen bounds
+        if (mousePos.x < globals::VIRTUAL_WIDTH && mousePos.y < globals::VIRTUAL_HEIGHT) {
+            cursor_events::process_left_release(reg, state, mousePos.x, mousePos.y, ctx);
+        }
     }
 
     // Track effective states for next frame comparison

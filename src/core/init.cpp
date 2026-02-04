@@ -1063,14 +1063,20 @@ auto loadConfigFileValues() -> void {
   auto heightField =
       requireField(globals::configJSON, {"render_data", "screen", "height"});
 
-  if (widthField.isErr() || heightField.isErr()) {
-    SPDLOG_ERROR("[config] {}",
-                 widthField.isErr() ? widthField.error() : heightField.error());
-    return;
+  // Apply defaults when config fields are unset
+  if (widthField.isErr()) {
+    SPDLOG_WARN("[config] Screen width not configured, using default: {}", globals::VIRTUAL_WIDTH);
+    globals::screenWidth = globals::VIRTUAL_WIDTH;
+  } else {
+    globals::screenWidth = widthField.value()->get<int>();
   }
 
-  globals::screenWidth = widthField.value()->get<int>();
-  globals::screenHeight = heightField.value()->get<int>();
+  if (heightField.isErr()) {
+    SPDLOG_WARN("[config] Screen height not configured, using default: {}", globals::VIRTUAL_HEIGHT);
+    globals::screenHeight = globals::VIRTUAL_HEIGHT;
+  } else {
+    globals::screenHeight = heightField.value()->get<int>();
+  }
 }
 
 } // namespace init

@@ -990,6 +990,9 @@ function main.init()
     -- Register grid inventory save collector (registers itself with SaveManager on require)
     local GridInventorySave = require("core.grid_inventory_save")
 
+    -- Register achievements save collector (registers itself with SaveManager on require)
+    local AchievementsPersistence = require("core.achievements_persistence")
+
     math.randomseed(12345)
     if PROFILE_ENABLED then
         profile.start()

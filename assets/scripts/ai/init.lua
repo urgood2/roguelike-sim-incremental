@@ -85,6 +85,38 @@ ai.goals  = ai.goals  or {
     end
   },
 
+  -- WORK: Collect ground items when available and has inventory space
+  COLLECT_ITEM = {
+    band    = "WORK",
+    persist = 0.12,
+    desire  = function(e, S)
+      local hasInventorySpace = ai.get_worldstate(e, "hasInventorySpace")
+      local nearGroundItem = ai.get_worldstate(e, "nearGroundItem")
+
+      -- Only collect distant items when not near items (passive collection handles nearby)
+      -- and when there's inventory space
+      if hasInventorySpace == true and nearGroundItem == false then
+        -- Check if there are any ground items available on the map
+        local terrain = require("idle_game.terrain")
+        local ground_items = terrain.get_ground_items()
+
+        -- Count available ground items
+        local item_count = 0
+        for _ in pairs(ground_items) do
+          item_count = item_count + 1
+          if item_count > 0 then break end  -- Early exit if any found
+        end
+
+        return item_count > 0 and 0.7 or 0.0
+      end
+
+      return 0.0
+    end,
+    on_apply = function(e)
+      ai.set_goal(e, { didWork = true })
+    end
+  },
+
   -- SURVIVAL: Forage food when hungry and near tree
   FORAGE = {
     band    = "SURVIVAL",
@@ -142,6 +174,19 @@ ai.goals  = ai.goals  or {
     on_apply = function(e)
       ai.patch_worldstate(e, "wander", false) -- clear sticky toggle, optional
       ai.set_goal(e, { wander = true })
+    end
+  },
+
+  -- WORK: Build structures when resources are available and timer allows
+  BUILD_STRUCTURE = {
+    band    = "WORK",
+    persist = 0.15,
+    desire  = function(e, S)
+      local canAttemptBuild = ai.get_worldstate(e, "canAttemptBuild")
+      return canAttemptBuild == true and 0.8 or 0.0
+    end,
+    on_apply = function(e)
+      ai.set_goal(e, { didWork = true })
     end
   },
 

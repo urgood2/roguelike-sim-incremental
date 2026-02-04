@@ -64,6 +64,12 @@ SaveManager.register("player_stats", {
 })
 ```
 
+**Registration flow (current):**
+- Validates the collector has `collect` and `distribute`, then stores it in `SaveManager.collectors`.
+- If `SaveManager.cache` already has data for the key (a save was loaded), it immediately calls `collector.distribute(data)` inside `pcall` and logs a warning on failure.
+
+This supports late registration, but registering before `SaveManager.init()` is still recommended.
+
 ### Save/Load Operations
 
 ```lua

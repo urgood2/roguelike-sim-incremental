@@ -233,7 +233,36 @@ t.describe("Upgrade System - Core Functionality", function()
         level = upgrades.get_level("click_wood")
         t.expect(level).to_equal(3)
     end)
-    
+
+    -- Test 12: Signal emitted when upgrade purchased
+    t.it("emits idle.upgrade_purchased signal with upgrade_id and new_level", function()
+        local upgrades = require("idle_game.upgrades")
+        upgrades.reset()
+
+        local resources = require("idle_game.resources")
+        resources.init()
+        resources.add("wood", 100)
+
+        -- Capture signal emissions
+        local signal_captured = nil
+        local signal = require("external.hump.signal")
+        signal.register("idle.upgrade_purchased", function(data)
+            signal_captured = data
+        end)
+
+        -- Purchase upgrade
+        local success = upgrades.purchase("click_wood", resources)
+        t.expect(success).to_be_truthy()
+
+        -- Verify signal was emitted with correct data
+        t.expect(signal_captured).to_be_type("table")
+        t.expect(signal_captured.upgrade_id).to_equal("click_wood")
+        t.expect(signal_captured.new_level).to_equal(1)
+
+        -- Clear handler
+        signal.clear("idle.upgrade_purchased")
+    end)
+
 end)
 
 --------------------------------------------------------------------------------

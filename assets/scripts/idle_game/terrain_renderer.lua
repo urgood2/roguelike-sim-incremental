@@ -16,8 +16,18 @@ local TILE_SPRITES = {
     [terrain.ROCK] = config.SPRITE_ROCK,     -- "033_33_d437_symbol"
 }
 
+-- Structure sprites (using dungeon_437 tileset symbols)
+local STRUCTURE_SPRITES = {
+    farm = "d437_250_alpha_f.png",          -- F for Farm
+    house = "d437_072_capital_h.png",       -- H for House
+    mine = "d437_077_capital_m.png",        -- M for Mine
+    workshop = "d437_087_capital_w.png",    -- W for Workshop
+    storage = "d437_083_capital_s.png",     -- S for Storage
+}
+
 -- Tile colors for tinting (must be Color userdata, not tables)
 local TILE_COLORS = nil
+local STRUCTURE_COLORS = nil
 
 local function initColors()
     if not TILE_COLORS then
@@ -25,6 +35,16 @@ local function initColors()
             [terrain.GRASS] = util.getColor("FOREST GREEN"),
             [terrain.TREE] = util.getColor("DARK GREEN"),
             [terrain.ROCK] = util.getColor("GRAY"),
+        }
+    end
+
+    if not STRUCTURE_COLORS then
+        STRUCTURE_COLORS = {
+            farm = util.getColor("GREEN"),      -- Fresh green for farms
+            house = util.getColor("BROWN"),     -- Brown for houses
+            mine = util.getColor("DARK GRAY"),  -- Dark gray for mines
+            workshop = util.getColor("ORANGE"), -- Orange for workshops
+            storage = util.getColor("BLUE"),    -- Blue for storage
         }
     end
 end
@@ -54,12 +74,13 @@ function terrain_renderer.draw(terrainGrid)
         return
     end
     
+    -- Draw terrain tiles
     for y = 0, terrainGrid.height - 1 do
         for x = 0, terrainGrid.width - 1 do
             local tileType = terrainGrid:get(x, y)
             local spriteName = TILE_SPRITES[tileType]
             local color = TILE_COLORS[tileType]
-            
+
             if spriteName and command_buffer then
                 command_buffer.queueDrawSpriteTopLeft(
                     layers.sprites,
@@ -72,6 +93,31 @@ function terrain_renderer.draw(terrainGrid)
                         c.tint = color
                     end,
                     0,
+                    layer.DrawCommandSpace.World
+                )
+            end
+        end
+    end
+
+    -- Draw structures after terrain, before corpses
+    local structures = terrain.get_structures()
+    if structures then
+        for structure_id, structure in pairs(structures) do
+            local spriteName = STRUCTURE_SPRITES[structure.type]
+            local color = STRUCTURE_COLORS[structure.type]
+
+            if spriteName and command_buffer then
+                command_buffer.queueDrawSpriteTopLeft(
+                    layers.sprites,
+                    function(c)
+                        c.spriteName = spriteName
+                        c.x = structure.x * TILE_SIZE
+                        c.y = structure.y * TILE_SIZE
+                        c.dstW = TILE_SIZE
+                        c.dstH = TILE_SIZE
+                        c.tint = color
+                    end,
+                    1,  -- Higher layer than terrain (0)
                     layer.DrawCommandSpace.World
                 )
             end

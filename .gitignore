@@ -2658,3 +2658,6 @@ build-luajit/
 imgui.ini
 devlog/remotion/node_modules/
 devlog/sfx/node_modules/
+
+# bv (beads viewer) local config and caches
+.bv/
