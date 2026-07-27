@@ -1,6 +1,6 @@
 -- Builder goal selector
 -- Specializes in construction and structure placement
-local ai = require("ai.init")
+local ai = _G.ai
 local selector = require("ai.goal_selector_engine")
 
 return function(e)

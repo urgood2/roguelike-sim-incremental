@@ -1,6 +1,6 @@
 -- Lumberjack goal selector
 -- Targets trees only - excludes HARVEST_STONE goal
-local ai = require("ai.init")
+local ai = _G.ai
 local selector = require("ai.goal_selector_engine")
 
 return function(e)

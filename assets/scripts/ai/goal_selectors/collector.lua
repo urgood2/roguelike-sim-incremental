@@ -1,6 +1,6 @@
 -- Collector goal selector
 -- Specializes in collecting ground items and providing resource gathering backup
-local ai = require("ai.init")
+local ai = _G.ai
 local selector = require("ai.goal_selector_engine")
 
 return function(e)

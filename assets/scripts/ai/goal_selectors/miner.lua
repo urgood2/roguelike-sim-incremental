@@ -1,6 +1,6 @@
 -- Miner goal selector
 -- Targets rocks only - excludes HARVEST_WOOD goal
-local ai = require("ai.init")
+local ai = _G.ai
 local selector = require("ai.goal_selector_engine")
 
 return function(e)
